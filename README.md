@@ -2,41 +2,26 @@
 
 package pojo;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
-public class Flight {
+public class Ticket {
+    private int ticketId;
     private int flightId;
-    private String source;
-    private String destination;
-    private Date date;
-    private String time;
-    private Map<Integer, Boolean> seats; // Seat number as key, booked status as value
+    private int seatNumber;
+    private String userName;
 
-    public Flight(int flightId, String source, String destination, Date date, String time, int seatCount) {
+    public Ticket(int ticketId, int flightId, int seatNumber, String userName) {
+        this.ticketId = ticketId;
         this.flightId = flightId;
-        this.source = source;
-        this.destination = destination;
-        this.date = date;
-        this.time = time;
-        this.seats = new HashMap<>();
-        for (int i = 1; i <= seatCount; i++) {
-            seats.put(i, false); // Initialize all seats as unbooked
-        }
+        this.seatNumber = seatNumber;
+        this.userName = userName;
     }
 
     // Getters and Setters
+    public int getTicketId() { return ticketId; }
+    public void setTicketId(int ticketId) { this.ticketId = ticketId; }
     public int getFlightId() { return flightId; }
     public void setFlightId(int flightId) { this.flightId = flightId; }
-    public String getSource() { return source; }
-    public void setSource(String source) { this.source = source; }
-    public String getDestination() { return destination; }
-    public void setDestination(String destination) { this.destination = destination; }
-    public Date getDate() { return date; }
-    public void setDate(Date date) { this.date = date; }
-    public String getTime() { return time; }
-    public void setTime(String time) { this.time = time; }
-    public Map<Integer, Boolean> getSeats() { return seats; }
-    public void setSeats(Map<Integer, Boolean> seats) { this.seats = seats; }
+    public int getSeatNumber() { return seatNumber; }
+    public void setSeatNumber(int seatNumber) { this.seatNumber = seatNumber; }
+    public String getUserName() { return userName; }
+    public void setUserName(String userName) { this.userName = userName; }
 }
