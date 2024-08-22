@@ -1,35 +1,32 @@
-package dao;
+package service;
 
-import pojo.Ticket;
-import java.util.ArrayList;
+import dao.FlightDAO;
+import pojo.Flight;
+import java.util.Date;
 import java.util.List;
 
-public class TicketDAO {
-    private List<Ticket> tickets = new ArrayList<>();
+public class FlightService {
+    private FlightDAO flightDAO = new FlightDAO();
 
-    public void addTicket(Ticket ticket) {
-        tickets.add(ticket);
+    public void addFlight(String source, String destination, Date date, String time, int seatCount) {
+        int flightId = flightDAO.getAllFlights().size() + 1; // Simple ID generation
+        Flight flight = new Flight(flightId, source, destination, date, time, seatCount);
+        flightDAO.addFlight(flight);
     }
 
-    public List<Ticket> getTicketsByUser(String userName) {
-        List<Ticket> userTickets = new ArrayList<>();
-        for (Ticket ticket : tickets) {
-            if (ticket.getUserName().equalsIgnoreCase(userName)) {
-                userTickets.add(ticket);
-            }
-        }
-        return userTickets;
+    public List<Flight> getAllFlights() {
+        return flightDAO.getAllFlights();
     }
 
-    public Ticket getTicketById(int ticketId) {
-        return tickets.stream().filter(ticket -> ticket.getTicketId() == ticketId).findFirst().orElse(null);
+    public Flight getFlightById(int flightId) {
+        return flightDAO.getFlightById(flightId);
     }
 
-    public void removeTicket(int ticketId) {
-        tickets.removeIf(ticket -> ticket.getTicketId() == ticketId);
+    public void cancelFlight(int flightId) {
+        flightDAO.removeFlight(flightId);
     }
 
-    public List<Ticket> getAllTickets() {
-        return new ArrayList<>(tickets);
+    public List<Flight> findFlights(String source, String destination, Date date) {
+        return flightDAO.findFlights(source, destination, date);
     }
 }
