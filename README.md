@@ -1,27 +1,38 @@
-# Money-Heist-Merch
+package dao;
 
-package pojo;
+import pojo.Flight;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
-public class Ticket {
-    private int ticketId;
-    private int flightId;
-    private int seatNumber;
-    private String userName;
+public class FlightDAO {
+    private List<Flight> flights = new ArrayList<>();
 
-    public Ticket(int ticketId, int flightId, int seatNumber, String userName) {
-        this.ticketId = ticketId;
-        this.flightId = flightId;
-        this.seatNumber = seatNumber;
-        this.userName = userName;
+    public void addFlight(Flight flight) {
+        flights.add(flight);
     }
 
-    // Getters and Setters
-    public int getTicketId() { return ticketId; }
-    public void setTicketId(int ticketId) { this.ticketId = ticketId; }
-    public int getFlightId() { return flightId; }
-    public void setFlightId(int flightId) { this.flightId = flightId; }
-    public int getSeatNumber() { return seatNumber; }
-    public void setSeatNumber(int seatNumber) { this.seatNumber = seatNumber; }
-    public String getUserName() { return userName; }
-    public void setUserName(String userName) { this.userName = userName; }
+    public List<Flight> getAllFlights() {
+        return new ArrayList<>(flights);
+    }
+
+    public Flight getFlightById(int flightId) {
+        return flights.stream().filter(flight -> flight.getFlightId() == flightId).findFirst().orElse(null);
+    }
+
+    public void removeFlight(int flightId) {
+        flights.removeIf(flight -> flight.getFlightId() == flightId);
+    }
+
+    public List<Flight> findFlights(String source, String destination, Date date) {
+        List<Flight> matchingFlights = new ArrayList<>();
+        for (Flight flight : flights) {
+            if (flight.getSource().equalsIgnoreCase(source)
+                    && flight.getDestination().equalsIgnoreCase(destination)
+                    && flight.getDate().equals(date)) {
+                matchingFlights.add(flight);
+            }
+        }
+        return matchingFlights;
+    }
 }
