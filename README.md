@@ -1,93 +1,42 @@
 # Money-Heist-Merch
 
+package pojo;
 
-UP FLIGHT DAO
-
-package dao;
-
-import pojo.Flight;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
-public class FlightDAO {
-    private List<Flight> flights = new ArrayList<>(); // Ensure the List is parameterized with Flight
+public class Flight {
+    private int flightId;
+    private String source;
+    private String destination;
+    private Date date;
+    private String time;
+    private Map<Integer, Boolean> seats; // Seat number as key, booked status as value
 
-    public void addFlight(Flight flight) {
-        flights.add(flight);
-    }
-
-    public List<Flight> getAllFlights() {
-        return flights; // This will now return a List<Flight>
-    }
-
-    public Flight getFlightById(int flightId) {
-        for (Flight flight : flights) { // Correct type usage in the loop
-            if (flight.getFlightId() == flightId) {
-                return flight;
-            }
+    public Flight(int flightId, String source, String destination, Date date, String time, int seatCount) {
+        this.flightId = flightId;
+        this.source = source;
+        this.destination = destination;
+        this.date = date;
+        this.time = time;
+        this.seats = new HashMap<>();
+        for (int i = 1; i <= seatCount; i++) {
+            seats.put(i, false); // Initialize all seats as unbooked
         }
-        return null;
     }
 
-    public void removeFlight(int flightId) {
-        flights.removeIf(flight -> flight.getFlightId() == flightId);
-    }
-
-    public List<Flight> findFlights(String source, String destination, Date date) {
-        List<Flight> matchingFlights = new ArrayList<>(); // Ensure correct type
-        for (Flight flight : flights) { // Correct type usage in the loop
-            if (flight.getSource().equalsIgnoreCase(source)
-                    && flight.getDestination().equalsIgnoreCase(destination)
-                    && flight.getDate().equals(date)) {
-                matchingFlights.add(flight);
-            }
-        }
-        return matchingFlights;
-    }
-}
-
-
-
-TICKET
-
-package dao;
-
-import pojo.Ticket;
-import java.util.ArrayList;
-import java.util.List;
-
-public class TicketDAO {
-    private List<Ticket> tickets = new ArrayList<>(); // Ensure the List is parameterized with Ticket
-
-    public void addTicket(Ticket ticket) {
-        tickets.add(ticket);
-    }
-
-    public List<Ticket> getTicketsByUser(String userName) {
-        List<Ticket> userTickets = new ArrayList<>(); // Ensure correct type
-        for (Ticket ticket : tickets) { // Correct type usage in the loop
-            if (ticket.getUserName().equalsIgnoreCase(userName)) {
-                userTickets.add(ticket);
-            }
-        }
-        return userTickets;
-    }
-
-    public Ticket getTicketById(int ticketId) {
-        for (Ticket ticket : tickets) { // Correct type usage in the loop
-            if (ticket.getTicketId() == ticketId) {
-                return ticket;
-            }
-        }
-        return null;
-    }
-
-    public void removeTicket(int ticketId) {
-        tickets.removeIf(ticket -> ticket.getTicketId() == ticketId);
-    }
-
-    public List<Ticket> getAllTickets() {
-        return tickets; // This will now return a List<Ticket>
-    }
+    // Getters and Setters
+    public int getFlightId() { return flightId; }
+    public void setFlightId(int flightId) { this.flightId = flightId; }
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
+    public String getDestination() { return destination; }
+    public void setDestination(String destination) { this.destination = destination; }
+    public Date getDate() { return date; }
+    public void setDate(Date date) { this.date = date; }
+    public String getTime() { return time; }
+    public void setTime(String time) { this.time = time; }
+    public Map<Integer, Boolean> getSeats() { return seats; }
+    public void setSeats(Map<Integer, Boolean> seats) { this.seats = seats; }
 }
