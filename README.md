@@ -582,3 +582,126 @@ public class Seat {
 
 
 
+
+Sure, let's go through each line of the entity classes step-by-step to clarify why certain decisions were made, such as declaring variables of entity types and using `Set` instead of other collections.
+
+### **Understanding JPA Entity Classes:**
+
+An entity class in JPA represents a table in the database, and each instance of the class corresponds to a row in that table. The fields in the entity class represent the columns in the table.
+
+### **Example Entity Classes: `Booking` and `Seat`**
+
+Let's start with the `Booking` and `Seat` entity classes to explain their structure and purpose.
+
+#### **`Booking` Entity Class Explanation:**
+
+```java
+@Entity
+@Table(name = "Booking")
+public class Booking {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long bookingId;
+    
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<Seat> seats;
+
+    // Other fields, constructors, getters, and setters
+}
+```
+
+##### **Explanation:**
+
+1. **`@Entity` Annotation:**
+   - Marks the class as a JPA entity, meaning it is mapped to a database table. 
+   - JPA will treat this class as an entity to perform CRUD (Create, Read, Update, Delete) operations.
+
+2. **`@Table(name = "Booking")` Annotation:**
+   - Specifies the name of the table (`Booking`) to which this entity is mapped. If not provided, JPA will assume the table name matches the class name (`Booking` in this case).
+
+3. **`private Long bookingId;` with `@Id` and `@GeneratedValue`:**
+   - **`@Id`**: Marks `bookingId` as the primary key of the table.
+   - **`@GeneratedValue(strategy = GenerationType.IDENTITY)`**: Specifies the strategy for generating primary key values. `GenerationType.IDENTITY` means the database will automatically generate and assign the primary key value (commonly using auto-increment).
+
+4. **`private Set<Seat> seats;` with `@OneToMany` Annotation:**
+   - Declares a collection (in this case, a `Set`) of `Seat` entities.
+   - **Why Declare Variables of Entity Type (`Set<Seat>`)**:
+     - **`Seat` is an entity**: Declaring a variable of type `Set<Seat>` establishes a relationship between the `Booking` entity and the `Seat` entity.
+     - This allows JPA to manage and understand the relationship between `Booking` and `Seat`, meaning a `Booking` can have multiple `Seat` entries. 
+   - **Why Use `Set` Instead of `List`**:
+     - **`Set` ensures uniqueness**: In many cases, you want to ensure that the collection of related entities is unique. A `Set` is chosen over a `List` when you want to prevent duplicate entries.
+     - **Performance reasons**: Operations like `add` in a `Set` can be faster when uniqueness is required because they typically rely on hash-based data structures.
+
+5. **`mappedBy = "booking"` in `@OneToMany`:**
+   - Specifies that this is the inverse side of the relationship, and the `booking` field in the `Seat` entity is the owner of the relationship.
+   - JPA will not create a foreign key column in the `Booking` table. Instead, it relies on the foreign key column defined in the `Seat` entity.
+
+6. **`cascade = CascadeType.ALL`:**
+   - Defines how operations (like persist, merge, remove, etc.) are cascaded from the `Booking` entity to the `Seat` entities.
+   - `CascadeType.ALL` means that all operations on a `Booking` entity (e.g., saving or deleting) will be cascaded to the associated `Seat` entities.
+
+7. **`fetch = FetchType.LAZY`:**
+   - Specifies the loading strategy for associated entities. `FetchType.LAZY` means the associated `Seat` entities will be loaded on-demand (when accessed for the first time).
+   - This is useful for performance optimization, as it avoids unnecessary loading of data.
+
+#### **`Seat` Entity Class Explanation:**
+
+```java
+@Entity
+@Table(name = "Seat")
+public class Seat {
+
+    @EmbeddedId // Composite key
+    private SeatId seatId;
+
+    @ManyToOne // Many seats belong to one booking
+    @JoinColumn(name = "booking_id") // Foreign key in Seat table referencing Booking table
+    private Booking booking;
+
+    // Other fields, constructors, getters, and setters
+}
+```
+
+##### **Explanation:**
+
+1. **`@Entity` Annotation:**
+   - Marks the class as a JPA entity, indicating that it is mapped to a database table.
+
+2. **`@Table(name = "Seat")` Annotation:**
+   - Specifies the name of the table (`Seat`) to which this entity is mapped.
+
+3. **`private SeatId seatId;` with `@EmbeddedId`:**
+   - **`@EmbeddedId`**: Specifies that `seatId` is a composite primary key.
+   - **`SeatId` Class**: An `@Embeddable` class that contains multiple columns to form a composite key. The `SeatId` class typically contains fields like `seatNumber` and `flightInfoId`.
+   - Using `@EmbeddedId` allows the `Seat` entity to have a composite primary key (a key formed by combining multiple columns).
+
+4. **`private Booking booking;` with `@ManyToOne` Annotation:**
+   - **`Booking booking`**: Declares a reference to another entity (`Booking`). This is a relationship field.
+   - **`@ManyToOne`**: Indicates a many-to-one relationship, meaning multiple `Seat` entries can be associated with a single `Booking`.
+   - JPA will create a foreign key column (`booking_id`) in the `Seat` table referencing the primary key of the `Booking` table.
+
+5. **`@JoinColumn(name = "booking_id")` Annotation:**
+   - Specifies the foreign key column name (`booking_id`) in the `Seat` table that references the primary key column (`bookingId`) in the `Booking` table.
+   - Establishes a link between the `Seat` and `Booking` tables, allowing JPA to handle the relationship correctly in the database.
+
+### **Key Takeaways:**
+
+1. **Why Declare Variables of Entity Types (`Booking` in `Seat` and `Set<Seat>` in `Booking`):**
+   - **To establish relationships**: Declaring variables of entity types allows JPA to understand and manage the relationships between entities. This is necessary for bidirectional navigation and cascading operations.
+   - **To define foreign keys**: Entity variables indicate where foreign key relationships exist, enabling JPA to create and manage these constraints in the database.
+
+2. **Why Use `Set` Instead of `List`:**
+   - **Ensures Uniqueness**: `Set` guarantees that no duplicate entities exist in the collection.
+   - **Performance**: Certain operations are optimized for sets, especially when uniqueness is a concern.
+
+3. **`mappedBy` in `@OneToMany`:**
+   - Indicates which side of the relationship is the inverse side, avoiding redundant foreign keys and ensuring that only one side manages the relationship.
+
+4. **Cascading and Fetching Strategies (`CascadeType` and `FetchType`):**
+   - **`CascadeType`** determines what operations should cascade from parent to child entities.
+   - **`FetchType`** controls when the data is loaded, allowing for performance optimization.
+
+### **Conclusion:**
+
+In JPA, entity relationships are managed through annotations and types that define how entities are related in the database. Declaring entity variables and collections helps JPA map the object model to the relational model effectively, maintaining data consistency and integrity while allowing efficient data operations.
