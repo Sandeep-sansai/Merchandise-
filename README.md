@@ -1133,3 +1133,478 @@ public class AuthRequest {
 Now you have a working JWT authentication with role-based authorization in your Spring Boot app! You can secure endpoints based on user roles by using the `@PreAuthorize` annotation (e.g., `@PreAuthorize("hasRole('ROLE_ADMIN')")`) on your controller methods for role-specific access control.
 
 Let me know if you need further adjustments or explanations!
+
+
+
+
+
+
+
+
+
+
+
+
+
+------------------(:):)/)-&-@-@-@&-)/(/(/(!: dndjdkskajahagah
+
+
+
+
+
+
+
+
+
+
+Since you're using Spring Boot 3, a few key differences need to be noted, such as changes in `WebSecurityConfigurerAdapter` (which is deprecated in Spring Security 6) and the use of `SecurityFilterChain` for configuring security. Here's the updated full code tailored for Spring Boot 3.
+
+### 1. **Dependencies (pom.xml)**
+Ensure you have the following dependencies for JWT and Spring Security in your `pom.xml`:
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+<dependency>
+    <groupId>io.jsonwebtoken</groupId>
+    <artifactId>jjwt-api</artifactId>
+    <version>0.11.5</version>
+</dependency>
+<dependency>
+    <groupId>io.jsonwebtoken</groupId>
+    <artifactId>jjwt-impl</artifactId>
+    <version>0.11.5</version>
+    <scope>runtime</scope>
+</dependency>
+<dependency>
+    <groupId>io.jsonwebtoken</groupId>
+    <artifactId>jjwt-jackson</artifactId>
+    <version>0.11.5</version>
+    <scope>runtime</scope>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+```
+
+### 2. **JWT Utility Class**
+This class handles the creation and validation of JWT tokens.
+
+```java
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.stereotype.Component;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+
+@Component
+public class JwtUtil {
+
+    private final String SECRET_KEY = "your_secret_key";
+
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    public String extractRole(String token) {
+        return (String) extractAllClaims(token).get("role");
+    }
+
+    public Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser()
+                .setSigningKey(SECRET_KEY)
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    private Boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+
+    public String generateToken(String username, String role) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", role);
+        return createToken(claims, username);
+    }
+
+    private String createToken(Map<String, Object> claims, String subject) {
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(subject)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
+                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+                .compact();
+    }
+
+    public Boolean validateToken(String token, String username) {
+        final String tokenUsername = extractUsername(token);
+        return (tokenUsername.equals(username) && !isTokenExpired(token));
+    }
+}
+```
+
+### 3. **CustomUserDetailsService**
+This service loads the user credentials and retrieves the role from the database.
+
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.stereotype.Service;
+
+@Service
+public class CustomUserDetailsService implements UserDetailsService {
+
+    @Autowired
+    private UserCredsRepository userCredsRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        UserCreds user = userCredsRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        String roleName = roleRepository.findById(user.getRoleId())
+                .orElseThrow(() -> new UsernameNotFoundException("Role not found"))
+                .getName();
+
+        return new CustomUserDetails(user.getEmail(), user.getPassword(), roleName);
+    }
+}
+```
+
+### 4. **CustomUserDetails Class**
+This wraps the user credentials and authorities (roles).
+
+```java
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
+import java.util.Collections;
+
+public class CustomUserDetails implements UserDetails {
+
+    private String email;
+    private String password;
+    private String roleName;
+
+    public CustomUserDetails(String email, String password, String roleName) {
+        this.email = email;
+        this.password = password;
+        this.roleName = roleName;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.singletonList(new SimpleGrantedAuthority(roleName));
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+}
+```
+
+### 5. **JWT Request Filter**
+This filter validates the JWT token and sets the user authentication.
+
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+@Component
+public class JwtRequestFilter extends OncePerRequestFilter {
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    @Autowired
+    private UserDetailsService userDetailsService;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+            throws ServletException, IOException {
+
+        final String authorizationHeader = request.getHeader("Authorization");
+
+        String username = null;
+        String jwt = null;
+
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            jwt = authorizationHeader.substring(7);
+            username = jwtUtil.extractUsername(jwt);
+        }
+
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+
+            if (jwtUtil.validateToken(jwt, userDetails.getUsername())) {
+                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            }
+        }
+        chain.doFilter(request, response);
+    }
+}
+```
+
+### 6. **Security Configuration for Spring Boot 3**
+Here, we define the security configuration using `SecurityFilterChain` instead of `WebSecurityConfigurerAdapter`.
+
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Autowired
+    private JwtRequestFilter jwtRequestFilter;
+
+    @Autowired
+    private CustomUserDetailsService customUserDetailsService;
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(HttpSecurity http, PasswordEncoder passwordEncoder) throws Exception {
+        return http.getSharedObject(AuthenticationManagerBuilder.class)
+                .userDetailsService(customUserDetailsService)
+                .passwordEncoder(passwordEncoder)
+                .and()
+                .build();
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.csrf().disable()
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/authenticate").permitAll()
+                        .anyRequest().
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Apologies for the incomplete response! Let's continue with the complete `SecurityConfig` class for Spring Boot 3.
+
+### 6. **Security Configuration for Spring Boot 3 (continued)**
+
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Autowired
+    private JwtRequestFilter jwtRequestFilter;
+
+    @Autowired
+    private CustomUserDetailsService customUserDetailsService;
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(HttpSecurity http, PasswordEncoder passwordEncoder) throws Exception {
+        return http.getSharedObject(AuthenticationManagerBuilder.class)
+                .userDetailsService(customUserDetailsService)
+                .passwordEncoder(passwordEncoder)
+                .and()
+                .build();
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.csrf().disable()  // Disable CSRF for simplicity
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/authenticate").permitAll() // Allow access to the authentication endpoint
+                        .anyRequest().authenticated() // Protect other endpoints
+                )
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // No session will be created or used by Spring Security
+                .and()
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class); // Add the JWT filter before UsernamePasswordAuthenticationFilter
+
+        return http.build();
+    }
+}
+```
+
+### 7. **Authentication Controller**
+
+This controller handles the user login by issuing the JWT token upon successful authentication.
+
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@RestController
+public class AuthController {
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private CustomUserDetailsService userDetailsService;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    @PostMapping("/authenticate")
+    public Map<String, String> createAuthenticationToken(@RequestBody AuthRequest authRequest) throws Exception {
+        // Authenticate user
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword()));
+        } catch (Exception e) {
+            throw new Exception("Incorrect email or password", e);
+        }
+
+        // Generate JWT token
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getEmail());
+        final String roleName = ((CustomUserDetails) userDetails).getAuthorities().iterator().next().getAuthority();
+        final String jwt = jwtUtil.generateToken(userDetails.getUsername(), roleName);
+
+        // Prepare response with the token
+        Map<String, String> response = new HashMap<>();
+        response.put("token", jwt);
+        return response;
+    }
+}
+```
+
+### 8. **Authentication Request DTO**
+
+This is a simple data object to hold the login credentials sent from the client.
+
+```java
+public class AuthRequest {
+    private String email;
+    private String password;
+
+    // Getters and Setters
+}
+```
+
+### 9. **How It Works**
+
+1. **Login Flow**: 
+   - The user sends a POST request to `/authenticate` with email and password.
+   - Spring Security handles authentication. Upon success, the `AuthController` issues a JWT that includes the user’s role.
+   
+2. **JWT Validation**:
+   - On subsequent requests, the JWT token is passed in the `Authorization` header.
+   - The `JwtRequestFilter` checks the validity of the token, extracts the role and username, and sets the user’s authentication.
+   
+3. **Authorization**:
+   - The user's role is embedded in the JWT. You can use role-based security by annotating methods with `@PreAuthorize` (e.g., `@PreAuthorize("hasRole('ROLE_ADMIN')")`).
+
+This completes the full implementation of JWT authentication and security configuration for Spring Boot 3! Let me know if you need any more adjustments or explanations.
