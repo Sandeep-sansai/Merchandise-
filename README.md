@@ -1608,3 +1608,98 @@ public class AuthRequest {
    - The user's role is embedded in the JWT. You can use role-based security by annotating methods with `@PreAuthorize` (e.g., `@PreAuthorize("hasRole('ROLE_ADMIN')")`).
 
 This completes the full implementation of JWT authentication and security configuration for Spring Boot 3! Let me know if you need any more adjustments or explanations.
+
+
+
+
+
+
+
+
+
+
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class InMemoryCache {
+    private static final Map<Long, User> cache = new ConcurrentHashMap<>();
+
+    public static User get(Long id) {
+        return cache.get(id);
+    }
+
+    public static void put(Long id, User user) {
+        cache.put(id, user);
+    }
+
+    public static void evict(Long id) {
+        cache.remove(id);
+    }
+}
+
+
+
+
+
+import org.springframework.stereotype.Service;
+
+@Service
+public class UserService {
+
+    public User findUserById(Long userId) {
+        // Simulate a database call
+        try {
+            Thread.sleep(2000); // Simulates delay
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        return new User(userId, "User " + userId);
+    }
+
+    public User getUser(Long userId) {
+        User user = InMemoryCache.get(userId);
+        if (user == null) {
+            user = findUserById(userId);
+            InMemoryCache.put(userId, user);
+        }
+        return user;
+    }
+}
+
+
+
+
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class UserController {
+
+    @Autowired
+    private UserService userService;
+
+    @GetMapping("/users/{id}")
+    public User getUser(@PathVariable Long id) {
+        return userService.getUser(id);
+    }
+}
+
+
+
+
+public class User {
+    private Long id;
+    private String name;
+
+    public User(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    // Getters and setters...
+}
