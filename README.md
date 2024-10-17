@@ -1703,3 +1703,272 @@ public class User {
 
     // Getters and setters...
 }
+
+
+
+
+
+Here’s a full implementation of an LRU cache in Java with API endpoints using Spring Boot. It includes endpoints for cache operations and a scheduled task to refresh the cache every hour.
+
+1. Config Package: LRU Cache Configuration with ConcurrentHashMap
+
+package config;
+
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+public class LRUCache<K, V> {
+    private final int capacity;
+    private final ConcurrentHashMap<K, V> cacheMap;
+    private final LinkedHashMap<K, V> accessOrderMap;
+
+    public LRUCache(int capacity) {
+        this.capacity = capacity;
+        this.cacheMap = new ConcurrentHashMap<>();
+        this.accessOrderMap = new LinkedHashMap<K, V>(capacity, 0.75f, true) {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+                return size() > capacity;
+            }
+        };
+    }
+
+    public V get(K key) {
+        synchronized (accessOrderMap) {
+            if (!cacheMap.containsKey(key)) {
+                return null;
+            }
+            V value = cacheMap.get(key);
+            accessOrderMap.get(key); // Update access order
+            return value;
+        }
+    }
+
+    public void put(K key, V value) {
+        synchronized (accessOrderMap) {
+            if (cacheMap.containsKey(key)) {
+                accessOrderMap.remove(key);
+            } else if (cacheMap.size() >= capacity) {
+                K eldestKey = accessOrderMap.entrySet().iterator().next().getKey();
+                cacheMap.remove(eldestKey);
+                accessOrderMap.remove(eldestKey);
+            }
+            cacheMap.put(key, value);
+            accessOrderMap.put(key, value);
+        }
+    }
+
+    public void remove(K key) {
+        synchronized (accessOrderMap) {
+            cacheMap.remove(key);
+            accessOrderMap.remove(key);
+        }
+    }
+
+    public int size() {
+        return cacheMap.size();
+    }
+
+    public void clear() {
+        synchronized (accessOrderMap) {
+            cacheMap.clear();
+            accessOrderMap.clear();
+        }
+    }
+}
+
+2. Service Package: Service Layer for Cache
+
+package service;
+
+import config.LRUCache;
+import org.springframework.stereotype.Service;
+
+@Service
+public class CacheService<K, V> {
+    private final LRUCache<K, V> lruCache;
+
+    public CacheService() {
+        this.lruCache = new LRUCache<>(100); // Set capacity to 100 or any desired size
+    }
+
+    public V getCache(K key) {
+        return lruCache.get(key);
+    }
+
+    public void putCache(K key, V value) {
+        lruCache.put(key, value);
+    }
+
+    public void removeCache(K key) {
+        lruCache.remove(key);
+    }
+
+    public int cacheSize() {
+        return lruCache.size();
+    }
+
+    public void clearCache() {
+        lruCache.clear();
+    }
+}
+
+3. Controller Package: REST API for Cache Operations
+
+package controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import pojo.CacheRequest;
+import service.CacheService;
+
+@RestController
+@RequestMapping("/api/cache")
+public class CacheController {
+
+    @Autowired
+    private CacheService<String, String> cacheService;
+
+    @GetMapping("/get/{key}")
+    public String getCacheValue(@PathVariable String key) {
+        return cacheService.getCache(key);
+    }
+
+    @PostMapping("/put")
+    public String putCacheValue(@RequestBody CacheRequest request) {
+        cacheService.putCache(request.getKey(), request.getValue());
+        return "Cache updated successfully!";
+    }
+
+    @DeleteMapping("/remove/{key}")
+    public String removeCacheValue(@PathVariable String key) {
+        cacheService.removeCache(key);
+        return "Cache removed successfully!";
+    }
+
+    @PostMapping("/clear")
+    public String clearCache() {
+        cacheService.clearCache();
+        return "Cache cleared!";
+    }
+
+    @PostMapping("/refresh")
+    public String refreshCache() {
+        cacheService.clearCache();
+        // Logic to reload from the database or any other source
+        // Add code here to populate the cache
+        return "Cache refreshed!";
+    }
+}
+
+4. Pojo Package: Data Transfer Object for Cache Request
+
+package pojo;
+
+public class CacheRequest {
+    private String key;
+    private String value;
+
+    // Getters and Setters
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+}
+
+5. Global Exception Handler: Handle Exceptions
+
+package exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(value = { RuntimeException.class })
+    public ResponseEntity<Object> handleRuntimeException(RuntimeException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+
+6. Scheduler for Refreshing Cache Every Hour
+
+You can use Spring’s @Scheduled annotation to refresh the cache every hour. Add this to a class in the Service package:
+
+package service;
+
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+
+@Service
+public class CacheScheduler {
+
+    private final CacheService<String, String> cacheService;
+
+    public CacheScheduler(CacheService<String, String> cacheService) {
+        this.cacheService = cacheService;
+    }
+
+    @Scheduled(fixedRate = 3600000) // 1 hour in milliseconds
+    public void refreshCachePeriodically() {
+        cacheService.clearCache();
+        // Logic to reload cache data from the database or external source
+        System.out.println("Cache refreshed every hour");
+    }
+}
+
+7. Enable Scheduling in Spring Boot Application
+
+Ensure you enable scheduling in your Spring Boot application class:
+
+package com.example.cacheapp;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
+
+@SpringBootApplication
+@EnableScheduling
+public class CacheAppApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(CacheAppApplication.class, args);
+    }
+}
+
+API Endpoints:
+
+	1.	GET /api/cache/get/{key} - Retrieve a value from the cache.
+	2.	POST /api/cache/put - Add or update a key-value pair in the cache.
+	•	Request Body:
+
+{
+  "key": "someKey",
+  "value": "someValue"
+}
+
+
+	3.	DELETE /api/cache/remove/{key} - Remove a specific key from the cache.
+	4.	POST /api/cache/clear - Clear the entire cache.
+	5.	POST /api/cache/refresh - Refresh the cache manually.
+
+Scheduled Task:
+
+	•	The cache will automatically refresh every hour using the @Scheduled task.
+
+This structure uses ConcurrentHashMap for thread-safe caching and includes endpoints for managing the cache, with automatic refresh functionality scheduled every hour.
