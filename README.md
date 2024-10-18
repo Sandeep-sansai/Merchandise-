@@ -1972,3 +1972,255 @@ Scheduled Task:
 	•	The cache will automatically refresh every hour using the @Scheduled task.
 
 This structure uses ConcurrentHashMap for thread-safe caching and includes endpoints for managing the cache, with automatic refresh functionality scheduled every hour.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+To ensure that the cache loads data from the database before the application context is fully initialized, you can implement a @PostConstruct method or an ApplicationRunner in Spring Boot that interacts with the database. The idea is to load the data from the database as part of the application startup process and put it into the LRU cache before the application starts serving requests.
+
+Here’s how you can implement it:
+
+Steps:
+
+	1.	Use the @PostConstruct method in the CacheService to load data from the database.
+	2.	Create a UserRepository in the DAO layer to interact with the database.
+	3.	Preload the cache with user data from the database when the application starts.
+
+1. DAO Layer: User Repository for Database Access
+
+Create a repository for database access to load user data into the cache.
+
+package dao;
+
+import entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface UserRepository extends JpaRepository<User, Long> {
+    // Additional custom queries can be added here if needed
+}
+
+2. Entity Layer: User Entity for the Database
+
+Make sure your User entity is mapped to the database table using JPA annotations:
+
+package entity;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
+@Entity
+public class User {
+
+    @Id
+    private Long id;
+    private String name;
+    private String email;
+    private int age;
+
+    // Constructors, Getters, and Setters
+    public User() {}
+
+    public User(Long id, String name, String email, int age) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.age = age;
+    }
+
+    // Getters and setters...
+}
+
+3. Service Layer: Cache Service with Database Integration
+
+In the CacheService, use UserRepository to load the data from the database into the cache when the application starts.
+
+package service;
+
+import config.LRUCache;
+import dao.UserRepository;
+import entity.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
+import java.util.List;
+
+@Service
+public class CacheService {
+
+    private final LRUCache<Long, User> lruCache;
+    private final UserRepository userRepository;
+
+    @Autowired
+    public CacheService(UserRepository userRepository) {
+        this.lruCache = new LRUCache<>(100); // Set cache size to 100
+        this.userRepository = userRepository;
+    }
+
+    // Load cache from DB before the application context is fully initialized
+    @PostConstruct
+    public void loadCacheBeforeContext() {
+        System.out.println("Loading user data from DB into cache...");
+        List<User> users = userRepository.findAll();
+        for (User user : users) {
+            lruCache.put(user.getId(), user);
+        }
+        System.out.println("Cache preloaded with user data from DB.");
+    }
+
+    public User getCache(Long id) {
+        return lruCache.get(id);
+    }
+
+    public void putCache(Long id, User user) {
+        lruCache.put(id, user);
+    }
+
+    public void removeCache(Long id) {
+        lruCache.remove(id);
+    }
+
+    public void clearCache() {
+        lruCache.clear();
+    }
+
+    public int cacheSize() {
+        return lruCache.size();
+    }
+}
+
+4. Controller Layer: User Cache Controller
+
+The controller can stay the same, and it interacts with the cache which is now preloaded from the database.
+
+package controller;
+
+import entity.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import pojo.UserRequest;
+import service.CacheService;
+
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+
+    @Autowired
+    private CacheService cacheService;
+
+    @GetMapping("/get/{id}")
+    public User getUserFromCache(@PathVariable Long id) {
+        return cacheService.getCache(id);
+    }
+
+    @PostMapping("/put")
+    public String putUserInCache(@RequestBody UserRequest userRequest) {
+        User user = new User(userRequest.getId(), userRequest.getName(), userRequest.getEmail(), userRequest.getAge());
+        cacheService.putCache(user.getId(), user);
+        return "User added to cache successfully!";
+    }
+
+    @DeleteMapping("/remove/{id}")
+    public String removeUserFromCache(@PathVariable Long id) {
+        cacheService.removeCache(id);
+        return "User removed from cache successfully!";
+    }
+
+    @PostMapping("/clear")
+    public String clearUserCache() {
+        cacheService.clearCache();
+        return "User cache cleared!";
+    }
+
+    @PostMapping("/refresh")
+    public String refreshUserCache() {
+        cacheService.clearCache();
+        // Logic to reload data from the database or any other source
+        return "User cache refreshed!";
+    }
+}
+
+5. Scheduled Cache Refresh: Scheduled Task for Cache Refresh
+
+In the CacheScheduler, schedule the cache refresh every hour, which also reloads data from the database.
+
+package service;
+
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+
+@Service
+public class CacheScheduler {
+
+    private final CacheService cacheService;
+
+    public CacheScheduler(CacheService cacheService) {
+        this.cacheService = cacheService;
+    }
+
+    @Scheduled(fixedRate = 3600000) // 1 hour in milliseconds
+    public void refreshCachePeriodically() {
+        cacheService.clearCache();
+        cacheService.loadCacheBeforeContext();
+        System.out.println("User cache refreshed every hour.");
+    }
+}
+
+6. Application Configuration
+
+Finally, enable scheduling and ensure that Spring Boot is set up for database interactions.
+
+package com.example.cacheapp;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
+
+@SpringBootApplication
+@EnableScheduling
+public class CacheAppApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(CacheAppApplication.class, args);
+    }
+}
+
+Database Setup:
+
+Ensure you have the necessary database configuration in application.properties:
+
+spring.datasource.url=jdbc:mysql://localhost:3306/yourdb
+spring.datasource.username=yourusername
+spring.datasource.password=yourpassword
+spring.jpa.hibernate.ddl-auto=update
+
+API Endpoints:
+
+	•	GET /api/users/get/{id} - Retrieve a user from the cache.
+	•	POST /api/users/put - Add or update a user in the cache.
+	•	DELETE /api/users/remove/{id} - Remove a user from the cache.
+	•	POST /api/users/clear - Clear the user cache.
+	•	POST /api/users/refresh - Manually refresh the user cache.
+
+Summary:
+
+This solution will load the user data from the database into the LRU cache when the application starts, before the context is fully loaded, and will also refresh the cache from the database every hour using a scheduled task.
