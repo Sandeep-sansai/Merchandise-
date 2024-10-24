@@ -218,3 +218,84 @@ How It Works:
 	•	Cache Refresh: Every hour (or manually), the cache is cleared and repopulated from the database.
 
 This setup ensures that data consistency is maintained between the cache and the database.
+
+
+
+
+Here’s an example where we create a simple Employee table, insert values, and perform 10 different query operations:
+
+1. Create the Employee table:
+
+CREATE TABLE Employee (
+    employee_id INT PRIMARY KEY,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    department VARCHAR(50),
+    salary DECIMAL(10, 2),
+    hire_date DATE
+);
+
+2. Insert sample values into the Employee table:
+
+INSERT INTO Employee (employee_id, first_name, last_name, department, salary, hire_date)
+VALUES 
+(1, 'John', 'Doe', 'IT', 60000, '2021-05-01'),
+(2, 'Jane', 'Smith', 'HR', 50000, '2022-01-15'),
+(3, 'Michael', 'Brown', 'Finance', 75000, '2020-07-10'),
+(4, 'Emily', 'Davis', 'IT', 72000, '2021-09-05'),
+(5, 'Sarah', 'Miller', 'HR', 65000, '2023-03-22');
+
+3. Query operations:
+
+	1.	Retrieve all employees:
+
+SELECT * FROM Employee;
+
+
+	2.	Find employees from the IT department:
+
+SELECT * FROM Employee WHERE department = 'IT';
+
+
+	3.	Get employees who earn more than $60,000:
+
+SELECT * FROM Employee WHERE salary > 60000;
+
+
+	4.	Count the number of employees in the HR department:
+
+SELECT COUNT(*) FROM Employee WHERE department = 'HR';
+
+
+	5.	Update the salary of employee with employee_id = 2:
+
+UPDATE Employee
+SET salary = 55000
+WHERE employee_id = 2;
+
+
+	6.	Delete the employee from the Finance department:
+
+DELETE FROM Employee WHERE department = 'Finance';
+
+
+	7.	Get the average salary of all employees:
+
+SELECT AVG(salary) FROM Employee;
+
+
+	8.	Find the employee who was hired most recently:
+
+SELECT * FROM Employee ORDER BY hire_date DESC LIMIT 1;
+
+
+	9.	Find all employees whose first name starts with ‘J’:
+
+SELECT * FROM Employee WHERE first_name LIKE 'J%';
+
+
+	10.	List employees ordered by salary in descending order:
+
+SELECT * FROM Employee ORDER BY salary DESC;
+
+These operations demonstrate creating a table, inserting values, and performing common query tasks such as filtering, updating, deleting, and aggregating data.
