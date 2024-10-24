@@ -299,3 +299,12 @@ SELECT * FROM Employee WHERE first_name LIKE 'J%';
 SELECT * FROM Employee ORDER BY salary DESC;
 
 These operations demonstrate creating a table, inserting values, and performing common query tasks such as filtering, updating, deleting, and aggregating data.
+
+
+
+
+
+
+
+
+CREATE TABLE Employee(employee_id INT PRIMARY KEY, first_name VARCHAR(50), last_name VARCHAR(50), department VARCHAR(50), salary DECIMAL(10, 2), hire_date DATE);
