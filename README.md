@@ -1,89 +1,114 @@
-Here’s a simple implementation of your requirement using iframes without CSS and JavaScript. The navigation bar remains on the left, and the content dynamically loads different pages into the main area using iframes.
+Here is a simple HTML and CSS implementation for a webpage with a fixed sidebar navigation bar on the left. The main content dynamically loads “About Me,” “Education,” and “Hobbies” sections without reloading the page using JavaScript.
 
-Main Page: index.html
-'''
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Navigation with iframes</title>
-</head>
-<body>
-  <!-- Navigation Sidebar -->
-  <table border="1" style="width: 100%; height: 100vh;">
-    <tr>
-      <!-- Sidebar -->
-      <td style="width: 20%; vertical-align: top; text-align: left;">
-        <h2>Navigation</h2>
-        <ul>
-          <li><a href="about.html" target="contentFrame">About Me</a></li>
-          <li><a href="education.html" target="contentFrame">Education</a></li>
-          <li><a href="hobbies.html" target="contentFrame">Hobbies</a></li>
-        </ul>
-      </td>
-      
-      <!-- Main Content Area -->
-      <td style="width: 80%;">
-        <iframe name="contentFrame" src="about.html" style="width: 100%; height: 100%; border: none;"></iframe>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
-
-About Me Page: about.html
+File: index.html
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>About Me</title>
+  <title>Single Page Navigation</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+    }
+
+    /* Sidebar styling */
+    .sidebar {
+      width: 250px;
+      height: 100vh;
+      background-color: #333;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      padding: 20px;
+    }
+
+    .sidebar a {
+      text-decoration: none;
+      color: white;
+      padding: 10px 0;
+      margin: 5px 0;
+      display: block;
+      font-size: 18px;
+    }
+
+    .sidebar a:hover {
+      background-color: #555;
+      padding-left: 10px;
+      transition: 0.3s;
+    }
+
+    /* Main content styling */
+    .content {
+      margin-left: 270px;
+      padding: 20px;
+      flex: 1;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+  </style>
 </head>
 <body>
-  <h1>About Me</h1>
-  <p>This is the About Me section. Here you can add information about yourself.</p>
-</body>
-</html>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Navigation</h2>
+    <a href="#" onclick="loadSection('about')">About Me</a>
+    <a href="#" onclick="loadSection('education')">Education</a>
+    <a href="#" onclick="loadSection('hobbies')">Hobbies</a>
+  </div>
 
-Education Page: education.html
+  <!-- Main Content -->
+  <div class="content">
+    <div id="about" class="section active">
+      <h1>About Me</h1>
+      <p>This is the About Me section. Here you can add information about yourself.</p>
+    </div>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Education</title>
-</head>
-<body>
-  <h1>Education</h1>
-  <p>This is the Education section. Add your educational background here.</p>
-</body>
-</html>
+    <div id="education" class="section">
+      <h1>Education</h1>
+      <p>This is the Education section. Add your educational background here.</p>
+    </div>
 
-Hobbies Page: hobbies.html
+    <div id="hobbies" class="section">
+      <h1>Hobbies</h1>
+      <p>This is the Hobbies section. Add details about your hobbies here.</p>
+    </div>
+  </div>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hobbies</title>
-</head>
-<body>
-  <h1>Hobbies</h1>
-  <p>This is the Hobbies section. Add details about your hobbies here.</p>
+  <!-- JavaScript -->
+  <script>
+    function loadSection(sectionId) {
+      // Hide all sections
+      document.querySelectorAll('.section').forEach(section => {
+        section.classList.remove('active');
+      });
+
+      // Show the selected section
+      document.getElementById(sectionId).classList.add('active');
+    }
+  </script>
 </body>
 </html>
 
 How It Works:
 
-	1.	Table Layout:
-	•	The navigation bar is placed in the left column of a table (<td>), and the iframe is in the right column.
-	2.	Dynamic Content Loading:
-	•	The iframe has a name attribute (contentFrame), and each navigation link (<a>) uses the target attribute to load its respective page into the iframe.
-	3.	Default Content:
-	•	The iframe loads the about.html page by default using the src attribute.
-'''
-This approach keeps the sidebar always visible while dynamically changing the content in the iframe.
+	1.	Navigation Bar:
+	•	The sidebar is fixed on the left using CSS. It includes links to “About Me,” “Education,” and “Hobbies.”
+	2.	Content Area:
+	•	The main content is displayed in a separate div to the right of the sidebar.
+	3.	Dynamic Loading:
+	•	Clicking on a link calls the loadSection() JavaScript function, which shows the corresponding section and hides others.
+	4.	Default Section:
+	•	The “About Me” section is shown by default (class="active").
+
+You can expand each section with your personalized content or styles!
