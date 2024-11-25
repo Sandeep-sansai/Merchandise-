@@ -6,10 +6,9 @@
   <title>Navigation with iframes</title>
 </head>
 <body>
-  <!-- Navigation Sidebar -->
+
   <table border="1" style="width: 100%; height: 100vh;">
     <tr>
-      <!-- Sidebar -->
       <td style="width: 20%; vertical-align: top; text-align: left;">
         <h2>Navigation</h2>
         <ul>
