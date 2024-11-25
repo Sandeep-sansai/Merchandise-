@@ -14,7 +14,7 @@
         <h2>Navigation</h2>
         <ul>
           <li><a href="about.html" target="contentFrame">About Me</a></li>
-          <li><a href="education.html" target="contentFrame">Education</a></li>
+ yehdh         <li><a href="education.html" target="contentFrame">Education</a></li>
           <li><a href="hobbies.html" target="contentFrame">Hobbies</a></li>
         </ul>
       </td>
