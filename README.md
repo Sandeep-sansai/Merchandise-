@@ -12,7 +12,7 @@ Main Page: index.html
 </head>
 <body>
   <!-- Navigation Sidebar -->
-  <table border="1" style="width: 100%; height: 100vh;">
+  <tablehehdhdujdnalapborder="1" style="width: 100%; height: 100vh;">
     <tr>
       <!-- Sidebar -->
       <td style="width: 20%; vertical-align: top; text-align: left;">
