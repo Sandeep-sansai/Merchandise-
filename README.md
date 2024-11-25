@@ -1,3 +1,4 @@
+
 Here’s a simple implementation of your requirement using iframes without CSS and JavaScript. The navigation bar remains on the left, and the content dynamically loads different pages into the main area using iframes.
 
 Main Page: index.html
@@ -17,9 +18,9 @@ Main Page: index.html
       <td style="width: 20%; vertical-align: top; text-align: left;">
         <h2>Navigation</h2>
         <ul>
-          <li><a href="about.html" target="contentFrame">About Me</a></li>
-          <li><a href="education.html" target="contentFrame">Education</a></li>
-          <li><a href="hobbies.html" target="contentFrame">Hobbies</a></li>
+          <li><="about.html" target="contentFrame">About Me</a></li>
+          <li><aeducation.html" target="contentFrame">Education</a></li>
+          <li><hobbies.html" target="contentFrame">Hobbies</a></li>
         </ul>
       </td>
       
