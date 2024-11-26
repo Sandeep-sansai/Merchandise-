@@ -1,90 +1,134 @@
+To achieve your requirement of a left-side navbar with options and content displayed on the right side, where only the right-side content reloads when you click on the navbar links, you can use HTML and iframes.
 
-Here’s a simple implementation of your requirement using iframes without CSS and JavaScript. The navigation bar remains on the left, and the content dynamically loads different pages into the main area using iframes.
+Here’s the code:
 
-Main Page: index.html
+HTML Code:
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Navigation with iframes</title>
+  <title>Left Navbar with Iframe</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      height: 100vh;
+    }
+    .navbar {
+      width: 20%;
+      background-color: #333;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+    }
+    .navbar a {
+      text-decoration: none;
+      color: white;
+      padding: 10px;
+      margin: 5px 0;
+      display: block;
+      border-radius: 5px;
+      text-align: center;
+    }
+    .navbar a:hover {
+      background-color: #575757;
+    }
+    .content {
+      width: 80%;
+      height: 100%;
+      border: none;
+    }
+  </style>
 </head>
 <body>
-  <!-- Navigation Sidebar -->
-  <tablehehdhdujdnalapborder="1" style="width: 100%; height: 100vh;">
-    <tr>
-      <!-- Sidebar -->
-      <td style="width: 20%; vertical-align: top; text-align: left;">
-        <h2>Navigation</h2>
-        <ul>
-          <li><="about.html" target="contentFrame">About Me</a></li>
-          <li><aeducation.html" target="contentFrame">Education</a></li>
-          <li><hobbies.html" target="contentFrame">Hobbies</a></li>
-        </ul>
-      </td>
-      
-      <!-- Main Content Area -->
-      <td style="width: 80%;">
-        <iframe name="contentFrame" src="about.html" style="width: 100%; height: 100%; border: none;"></iframe>
-      </td>
-    </tr>
-  </table>
+  <!-- Navbar Section -->
+  <div class="navbar">
+    <a href="home.html" target="contentFrame">Home</a>
+    <a href="about.html" target="contentFrame">About Me</a>
+    <a href="education.html" target="contentFrame">Education</a>
+    <a href="hobbies.html" target="contentFrame">Hobbies</a>
+  </div>
+
+  <!-- Content Section with iframe -->
+  <iframe class="content" name="contentFrame" src="home.html"></iframe>
 </body>
 </html>
 
-About Me Page: about.html
+Steps:
+
+	1.	Create separate HTML files for each of the pages (home.html, about.html, education.html, hobbies.html) with the desired content.
+
+home.html
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home</title>
+</head>
+<body>
+  <h1>Welcome to the Home Page</h1>
+  <p>This is the content for the Home page.</p>
+</body>
+</html>
+
+about.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
   <title>About Me</title>
 </head>
 <body>
   <h1>About Me</h1>
-  <p>This is the About Me section. Here you can add information about yourself.</p>
+  <p>This is the content for the About Me page.</p>
 </body>
 </html>
 
-Education Page: education.html
+education.html
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Education</title>
 </head>
 <body>
   <h1>Education</h1>
-  <p>This is the Education section. Add your educational background here.</p>
+  <p>This is the content for the Education page.</p>
 </body>
 </html>
 
-Hobbies Page: hobbies.html
+hobbies.html
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hobbies</title>
 </head>
 <body>
   <h1>Hobbies</h1>
-  <p>This is the Hobbies section. Add details about your hobbies here.</p>
+  <p>This is the content for the Hobbies page.</p>
 </body>
 </html>
 
-How It Works:
+Explanation:
 
-	1.	Table Layout:
-	•	The navigation bar is placed in the left column of a table (<td>), and the iframe is in the right column.
-	2.	Dynamic Content Loading:
-	•	The iframe has a name attribute (contentFrame), and each navigation link (<a>) uses the target attribute to load its respective page into the iframe.
-	3.	Default Content:
-	•	The iframe loads the about.html page by default using the src attribute.
+	1.	Navbar Section:
+	•	The links (<a> tags) point to separate HTML pages (home.html, about.html, etc.).
+	•	The target="contentFrame" attribute ensures the links open in the iframe.
+	2.	Iframe Section:
+	•	The <iframe> element acts as the content container.
+	•	The src="home.html" loads the default content (Home) when the page is initially opened.
+	•	The name="contentFrame" allows the navbar links to target the iframe and load content dynamically.
+	3.	Styling:
+	•	The navbar is styled to take up 20% of the screen width, and the iframe takes up 80%.
+	•	Hover effects are added to the navbar options for better interactivity.
 
-This approach keeps the sidebar always visible while dynamically changing the content in the iframe.
+Now, when you click on a navbar option, only the right-side iframe reloads with the respective content, keeping the rest of the page static.
