@@ -768,3 +768,245 @@ public class CredentialsService {
 Repeat similar patterns for all other entities, such as FlightService, RoleService, SeatService, StatusService, and UserService.
 
 Let me know if you’d like me to generate the remaining classes or clarify anything specific!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Here are the remaining Service Layer classes for all entities:
+
+4. FlightService
+
+@Service
+public class FlightService {
+    private final FlightRepository flightRepository;
+
+    @Autowired
+    public FlightService(FlightRepository flightRepository) {
+        this.flightRepository = flightRepository;
+    }
+
+    // Fetch All Flights
+    public List<Flight> fetchAllFlights() {
+        return flightRepository.findAll()
+                .stream()
+                .map(this::mapToPojo)
+                .collect(Collectors.toList());
+    }
+
+    // Fetch Flight by ID
+    public Flight fetchFlightById(Long id) {
+        return flightRepository.findById(id)
+                .map(this::mapToPojo)
+                .orElseThrow(() -> new RuntimeException("Flight not found with ID: " + id));
+    }
+
+    // Add a Flight
+    public Flight addFlight(Flight flight) {
+        FlightEntity savedEntity = flightRepository.save(mapToEntity(flight));
+        return mapToPojo(savedEntity);
+    }
+
+    // Update a Flight
+    public Flight updateFlight(Long id, Flight flight) {
+        FlightEntity existingEntity = flightRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Flight not found with ID: " + id));
+
+        existingEntity.setFlightNumber(flight.getFlightNumber());
+        existingEntity.setSourceCity(flight.getSourceCity());
+        existingEntity.setDestinationCity(flight.getDestinationCity());
+        existingEntity.setDepartureTime(flight.getDepartureTime());
+        existingEntity.setArrivalTime(flight.getArrivalTime());
+
+        FlightEntity updatedEntity = flightRepository.save(existingEntity);
+        return mapToPojo(updatedEntity);
+    }
+
+    // Delete a Flight
+    public void deleteFlight(Long id) {
+        flightRepository.deleteById(id);
+    }
+
+    // Mapping Methods
+    private Flight mapToPojo(FlightEntity entity) {
+        Flight flight = new Flight();
+        flight.setId(entity.getId());
+        flight.setFlightNumber(entity.getFlightNumber());
+        flight.setSourceCity(entity.getSourceCity().getCityName());
+        flight.setDestinationCity(entity.getDestinationCity().getCityName());
+        flight.setDepartureTime(entity.getDepartureTime());
+        flight.setArrivalTime(entity.getArrivalTime());
+        return flight;
+    }
+
+    private FlightEntity mapToEntity(Flight flight) {
+        FlightEntity entity = new FlightEntity();
+        entity.setId(flight.getId());
+        // Use service logic to fetch CityEntity references for source and destination cities.
+        entity.setDepartureTime(flight.getDepartureTime());
+        entity.setArrivalTime(flight.getArrivalTime());
+        return entity;
+    }
+}
+
+5. FlightInfoService
+
+@Service
+public class FlightInfoService {
+    private final FlightInfoRepository flightInfoRepository;
+
+    @Autowired
+    public FlightInfoService(FlightInfoRepository flightInfoRepository) {
+        this.flightInfoRepository = flightInfoRepository;
+    }
+
+    // Fetch All Flight Info
+    public List<FlightInfo> fetchAllFlightInfo() {
+        return flightInfoRepository.findAll()
+                .stream()
+                .map(this::mapToPojo)
+                .collect(Collectors.toList());
+    }
+
+    // Fetch Flight Info by ID
+    public FlightInfo fetchFlightInfoById(Long id) {
+        return flightInfoRepository.findById(id)
+                .map(this::mapToPojo)
+                .orElseThrow(() -> new RuntimeException("Flight Info not found with ID: " + id));
+    }
+
+    // Add Flight Info
+    public FlightInfo addFlightInfo(FlightInfo flightInfo) {
+        FlightInfoEntity savedEntity = flightInfoRepository.save(mapToEntity(flightInfo));
+        return mapToPojo(savedEntity);
+    }
+
+    // Update Flight Info
+    public FlightInfo updateFlightInfo(Long id, FlightInfo flightInfo) {
+        FlightInfoEntity existingEntity = flightInfoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Flight Info not found with ID: " + id));
+
+        existingEntity.setFlightDetails(flightInfo.getFlightDetails());
+        existingEntity.setPrice(flightInfo.getPrice());
+        FlightInfoEntity updatedEntity = flightInfoRepository.save(existingEntity);
+
+        return mapToPojo(updatedEntity);
+    }
+
+    // Delete Flight Info
+    public void deleteFlightInfo(Long id) {
+        flightInfoRepository.deleteById(id);
+    }
+
+    // Mapping Methods
+    private FlightInfo mapToPojo(FlightInfoEntity entity) {
+        FlightInfo flightInfo = new FlightInfo();
+        flightInfo.setId(entity.getId());
+        flightInfo.setFlightId(entity.getFlight().getId());
+        flightInfo.setFlightDetails(entity.getFlightDetails());
+        flightInfo.setPrice(entity.getPrice());
+        return flightInfo;
+    }
+
+    private FlightInfoEntity mapToEntity(FlightInfo flightInfo) {
+        FlightInfoEntity entity = new FlightInfoEntity();
+        entity.setId(flightInfo.getId());
+        // Use service logic to fetch FlightEntity reference.
+        entity.setFlightDetails(flightInfo.getFlightDetails());
+        entity.setPrice(flightInfo.getPrice());
+        return entity;
+    }
+}
+
+6. RoleService
+
+@Service
+public class RoleService {
+    private final RoleRepository roleRepository;
+
+    @Autowired
+    public RoleService(RoleRepository roleRepository) {
+        this.roleRepository = roleRepository;
+    }
+
+    // Fetch All Roles
+    public List<Role> fetchAllRoles() {
+        return roleRepository.findAll()
+                .stream()
+                .map(this::mapToPojo)
+                .collect(Collectors.toList());
+    }
+
+    // Fetch Role by ID
+    public Role fetchRoleById(Long id) {
+        return roleRepository.findById(id)
+                .map(this::mapToPojo)
+                .orElseThrow(() -> new RuntimeException("Role not found with ID: " + id));
+    }
+
+    // Add a Role
+    public Role addRole(Role role) {
+        RoleEntity savedEntity = roleRepository.save(mapToEntity(role));
+        return mapToPojo(savedEntity);
+    }
+
+    // Update a Role
+    public Role updateRole(Long id, Role role) {
+        RoleEntity existingEntity = roleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Role not found with ID: " + id));
+
+        existingEntity.setRoleName(role.getRoleName());
+        RoleEntity updatedEntity = roleRepository.save(existingEntity);
+
+        return mapToPojo(updatedEntity);
+    }
+
+    // Delete a Role
+    public void deleteRole(Long id) {
+        roleRepository.deleteById(id);
+    }
+
+    // Mapping Methods
+    private Role mapToPojo(RoleEntity entity) {
+        Role role = new Role();
+        role.setId(entity.getId());
+        role.setRoleName(entity.getRoleName());
+        return role;
+    }
+
+    private RoleEntity mapToEntity(Role role) {
+        RoleEntity entity = new RoleEntity();
+        entity.setId(role.getId());
+        entity.setRoleName(role.getRoleName());
+        return entity;
+    }
+}
+
+Repeat similar patterns for SeatService, StatusService, and UserService using the same logic and structure.
+
+Let me know if you’d like the code for the remaining services!
