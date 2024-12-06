@@ -1,134 +1,242 @@
-To achieve your requirement of a left-side navbar with options and content displayed on the right side, where only the right-side content reloads when you click on the navbar links, you can use HTML and iframes.
+Below is the mapping structure for all the mentioned entities with their fields, considering this is a Spring Boot project using JPA annotations. Relationships like @OneToMany, @ManyToOne, etc., are included as per standard practices. Feel free to adjust based on your exact requirements.
 
-Here’s the code:
+1. BookingEntity
 
-HTML Code:
+@Entity
+@Table(name = "booking")
+public class BookingEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Left Navbar with Iframe</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      display: flex;
-      height: 100vh;
-    }
-    .navbar {
-      width: 20%;
-      background-color: #333;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      padding: 20px;
-    }
-    .navbar a {
-      text-decoration: none;
-      color: white;
-      padding: 10px;
-      margin: 5px 0;
-      display: block;
-      border-radius: 5px;
-      text-align: center;
-    }
-    .navbar a:hover {
-      background-color: #575757;
-    }
-    .content {
-      width: 80%;
-      height: 100%;
-      border: none;
-    }
-  </style>
-</head>
-<body>
-  <!-- Navbar Section -->
-  <div class="navbar">
-    <a href="home.html" target="contentFrame">Home</a>
-    <a href="about.html" target="contentFrame">About Me</a>
-    <a href="education.html" target="contentFrame">Education</a>
-    <a href="hobbies.html" target="contentFrame">Hobbies</a>
-  </div>
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;
 
-  <!-- Content Section with iframe -->
-  <iframe class="content" name="contentFrame" src="home.html"></iframe>
-</body>
-</html>
+    @ManyToOne
+    @JoinColumn(name = "flight_id", nullable = false)
+    private FlightEntity flight;
 
-Steps:
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL)
+    private List<SeatEntity> seats;
 
-	1.	Create separate HTML files for each of the pages (home.html, about.html, education.html, hobbies.html) with the desired content.
+    @Column(name = "booking_date", nullable = false)
+    private LocalDate bookingDate;
 
-home.html
+    @ManyToOne
+    @JoinColumn(name = "status_id", nullable = false)
+    private StatusEntity status;
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Home</title>
-</head>
-<body>
-  <h1>Welcome to the Home Page</h1>
-  <p>This is the content for the Home page.</p>
-</body>
-</html>
+    // Getters and Setters
+}
 
-about.html
+2. CityEntity
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>About Me</title>
-</head>
-<body>
-  <h1>About Me</h1>
-  <p>This is the content for the About Me page.</p>
-</body>
-</html>
+@Entity
+@Table(name = "city")
+public class CityEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-education.html
+    @Column(name = "name", nullable = false, unique = true)
+    private String name;
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Education</title>
-</head>
-<body>
-  <h1>Education</h1>
-  <p>This is the content for the Education page.</p>
-</body>
-</html>
+    @Column(name = "state", nullable = false)
+    private String state;
 
-hobbies.html
+    @Column(name = "country", nullable = false)
+    private String country;
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Hobbies</title>
-</head>
-<body>
-  <h1>Hobbies</h1>
-  <p>This is the content for the Hobbies page.</p>
-</body>
-</html>
+    @OneToMany(mappedBy = "sourceCity", cascade = CascadeType.ALL)
+    private List<FlightEntity> outgoingFlights;
 
-Explanation:
+    @OneToMany(mappedBy = "destinationCity", cascade = CascadeType.ALL)
+    private List<FlightEntity> incomingFlights;
 
-	1.	Navbar Section:
-	•	The links (<a> tags) point to separate HTML pages (home.html, about.html, etc.).
-	•	The target="contentFrame" attribute ensures the links open in the iframe.
-	2.	Iframe Section:
-	•	The <iframe> element acts as the content container.
-	•	The src="home.html" loads the default content (Home) when the page is initially opened.
-	•	The name="contentFrame" allows the navbar links to target the iframe and load content dynamically.
-	3.	Styling:
-	•	The navbar is styled to take up 20% of the screen width, and the iframe takes up 80%.
-	•	Hover effects are added to the navbar options for better interactivity.
+    // Getters and Setters
+}
 
-Now, when you click on a navbar option, only the right-side iframe reloads with the respective content, keeping the rest of the page static.
+3. CredentialsEntity
+
+@Entity
+@Table(name = "credentials")
+public class CredentialsEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "username", nullable = false, unique = true)
+    private String username;
+
+    @Column(name = "password", nullable = false)
+    private String password;
+
+    @ManyToOne
+    @JoinColumn(name = "role_id", nullable = false)
+    private RoleEntity role;
+
+    @OneToOne(mappedBy = "credentials")
+    private UserEntity user;
+
+    // Getters and Setters
+}
+
+4. FlightEntity
+
+@Entity
+@Table(name = "flight")
+public class FlightEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "flight_number", nullable = false, unique = true)
+    private String flightNumber;
+
+    @ManyToOne
+    @JoinColumn(name = "source_city_id", nullable = false)
+    private CityEntity sourceCity;
+
+    @ManyToOne
+    @JoinColumn(name = "destination_city_id", nullable = false)
+    private CityEntity destinationCity;
+
+    @OneToMany(mappedBy = "flight", cascade = CascadeType.ALL)
+    private List<SeatEntity> seats;
+
+    @OneToMany(mappedBy = "flight", cascade = CascadeType.ALL)
+    private List<BookingEntity> bookings;
+
+    @OneToMany(mappedBy = "flight", cascade = CascadeType.ALL)
+    private List<FlightInfoEntity> flightInfos;
+
+    // Getters and Setters
+}
+
+5. FlightInfoEntity
+
+@Entity
+@Table(name = "flight_info")
+public class FlightInfoEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "flight_id", nullable = false)
+    private FlightEntity flight;
+
+    @Column(name = "departure_time", nullable = false)
+    private LocalDateTime departureTime;
+
+    @Column(name = "arrival_time", nullable = false)
+    private LocalDateTime arrivalTime;
+
+    @Column(name = "duration", nullable = false)
+    private String duration;
+
+    @Column(name = "price", nullable = false)
+    private BigDecimal price;
+
+    // Getters and Setters
+}
+
+6. RoleEntity
+
+@Entity
+@Table(name = "role")
+public class RoleEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "name", nullable = false, unique = true)
+    private String name;
+
+    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
+    private List<CredentialsEntity> credentials;
+
+    // Getters and Setters
+}
+
+7. SeatEntity
+
+@Entity
+@Table(name = "seat")
+public class SeatEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "seat_number", nullable = false)
+    private String seatNumber;
+
+    @ManyToOne
+    @JoinColumn(name = "flight_id", nullable = false)
+    private FlightEntity flight;
+
+    @ManyToOne
+    @JoinColumn(name = "booking_id")
+    private BookingEntity booking;
+
+    @ManyToOne
+    @JoinColumn(name = "status_id", nullable = false)
+    private StatusEntity status;
+
+    // Getters and Setters
+}
+
+8. StatusEntity
+
+@Entity
+@Table(name = "status")
+public class StatusEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "status_name", nullable = false, unique = true)
+    private String statusName;
+
+    @OneToMany(mappedBy = "status", cascade = CascadeType.ALL)
+    private List<BookingEntity> bookings;
+
+    @OneToMany(mappedBy = "status", cascade = CascadeType.ALL)
+    private List<SeatEntity> seats;
+
+    // Getters and Setters
+}
+
+9. UserEntity
+
+@Entity
+@Table(name = "user")
+public class UserEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "first_name", nullable = false)
+    private String firstName;
+
+    @Column(name = "last_name", nullable = false)
+    private String lastName;
+
+    @Column(name = "email", nullable = false, unique = true)
+    private String email;
+
+    @Column(name = "phone_number", nullable = false, unique = true)
+    private String phoneNumber;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<BookingEntity> bookings;
+
+    @OneToOne
+    @JoinColumn(name = "credentials_id", nullable = false)
+    private CredentialsEntity credentials;
+
+    // Getters and Setters
+}
+
+These mappings provide a comprehensive structure for your entities. Let me know if you need additional changes or more details about specific relationships.
