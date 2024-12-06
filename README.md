@@ -240,3 +240,100 @@ public class UserEntity {
 }
 
 These mappings provide a comprehensive structure for your entities. Let me know if you need additional changes or more details about specific relationships.
+
+
+
+
+
+
+
+
+
+&&&&&&&&&&&&&&&&&&-&-&&-&&&&-&-&&-&-&-&-&-&-&-&-&&
+
+
+DAO
+
+Below is the implementation of the DAO layer for the entities you mentioned using Spring Data JPA. These repositories will allow for basic CRUD operations and querying through Spring JPA without needing to write boilerplate code.
+
+1. BookingEntity Repository
+
+@Repository
+public interface BookingRepository extends JpaRepository<BookingEntity, Long> {
+    List<BookingEntity> findByUserId(Long userId); // Custom query to find bookings by user ID
+}
+
+2. CityEntity Repository
+
+@Repository
+public interface CityRepository extends JpaRepository<CityEntity, Long> {
+    Optional<CityEntity> findByCityName(String cityName); // Custom query to find city by name
+}
+
+3. CredentialsEntity Repository
+
+@Repository
+public interface CredentialsRepository extends JpaRepository<CredentialsEntity, Long> {
+    Optional<CredentialsEntity> findByUsername(String username); // Custom query to find by username
+}
+
+4. FlightEntity Repository
+
+@Repository
+public interface FlightRepository extends JpaRepository<FlightEntity, Long> {
+    List<FlightEntity> findBySourceAndDestination(String source, String destination); // Find flights by source and destination
+    List<FlightEntity> findByDepartureDate(LocalDate departureDate); // Find flights by departure date
+}
+
+5. FlightInfoEntity Repository
+
+@Repository
+public interface FlightInfoRepository extends JpaRepository<FlightInfoEntity, Long> {
+    Optional<FlightInfoEntity> findByFlightNumber(String flightNumber); // Find flight info by flight number
+}
+
+6. RoleEntity Repository
+
+@Repository
+public interface RoleRepository extends JpaRepository<RoleEntity, Long> {
+    Optional<RoleEntity> findByRoleName(String roleName); // Find role by name
+}
+
+7. SeatEntity Repository
+
+@Repository
+public interface SeatRepository extends JpaRepository<SeatEntity, Long> {
+    List<SeatEntity> findByFlightId(Long flightId); // Find seats by flight ID
+}
+
+8. StatusEntity Repository
+
+@Repository
+public interface StatusRepository extends JpaRepository<StatusEntity, Long> {
+    Optional<StatusEntity> findByStatusName(String statusName); // Find status by name
+}
+
+9. UserEntity Repository
+
+@Repository
+public interface UserRepository extends JpaRepository<UserEntity, Long> {
+    Optional<UserEntity> findByEmail(String email); // Find user by email
+    Optional<UserEntity> findByPhoneNumber(String phoneNumber); // Find user by phone number
+}
+
+Key Points:
+
+	1.	Base Interface: All repositories extend JpaRepository<T, ID>, where:
+	•	T is the entity type.
+	•	ID is the type of the entity’s primary key.
+	2.	Custom Methods: Use Spring Data JPA’s method query generation for custom queries like findByEmail or findBySourceAndDestination.
+	3.	Annotations:
+	•	@Repository: Indicates that the interface is a Spring Data repository.
+
+Why These DAOs Are Useful:
+
+	•	These DAOs provide built-in CRUD methods like save, findById, findAll, deleteById, etc.
+	•	You can add custom methods (e.g., findBySourceAndDestination) based on naming conventions.
+	•	These DAOs will be used in the Service Layer to interact with the database seamlessly.
+
+Let me know if you’d like to proceed with the Service Layer implementation or have further questions!
