@@ -1010,3 +1010,215 @@ public class RoleService {
 Repeat similar patterns for SeatService, StatusService, and UserService using the same logic and structure.
 
 Let me know if you’d like the code for the remaining services!
+
+
+
+Here’s the code for the remaining service classes:
+
+7. SeatService
+
+@Service
+public class SeatService {
+    private final SeatRepository seatRepository;
+
+    @Autowired
+    public SeatService(SeatRepository seatRepository) {
+        this.seatRepository = seatRepository;
+    }
+
+    // Fetch All Seats
+    public List<Seat> fetchAllSeats() {
+        return seatRepository.findAll()
+                .stream()
+                .map(this::mapToPojo)
+                .collect(Collectors.toList());
+    }
+
+    // Fetch Seat by ID
+    public Seat fetchSeatById(Long id) {
+        return seatRepository.findById(id)
+                .map(this::mapToPojo)
+                .orElseThrow(() -> new RuntimeException("Seat not found with ID: " + id));
+    }
+
+    // Add a Seat
+    public Seat addSeat(Seat seat) {
+        SeatEntity savedEntity = seatRepository.save(mapToEntity(seat));
+        return mapToPojo(savedEntity);
+    }
+
+    // Update a Seat
+    public Seat updateSeat(Long id, Seat seat) {
+        SeatEntity existingEntity = seatRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Seat not found with ID: " + id));
+
+        existingEntity.setSeatNumber(seat.getSeatNumber());
+        existingEntity.setStatus(seat.getStatus());
+        existingEntity.setFlight(seat.getFlightId());
+
+        SeatEntity updatedEntity = seatRepository.save(existingEntity);
+        return mapToPojo(updatedEntity);
+    }
+
+    // Delete a Seat
+    public void deleteSeat(Long id) {
+        seatRepository.deleteById(id);
+    }
+
+    // Mapping Methods
+    private Seat mapToPojo(SeatEntity entity) {
+        Seat seat = new Seat();
+        seat.setId(entity.getId());
+        seat.setSeatNumber(entity.getSeatNumber());
+        seat.setStatus(entity.getStatus().getStatusName());
+        seat.setFlightId(entity.getFlight().getId());
+        return seat;
+    }
+
+    private SeatEntity mapToEntity(Seat seat) {
+        SeatEntity entity = new SeatEntity();
+        entity.setId(seat.getId());
+        entity.setSeatNumber(seat.getSeatNumber());
+        // Use service logic to fetch StatusEntity and FlightEntity references
+        return entity;
+    }
+}
+
+8. StatusService
+
+@Service
+public class StatusService {
+    private final StatusRepository statusRepository;
+
+    @Autowired
+    public StatusService(StatusRepository statusRepository) {
+        this.statusRepository = statusRepository;
+    }
+
+    // Fetch All Statuses
+    public List<Status> fetchAllStatuses() {
+        return statusRepository.findAll()
+                .stream()
+                .map(this::mapToPojo)
+                .collect(Collectors.toList());
+    }
+
+    // Fetch Status by ID
+    public Status fetchStatusById(Long id) {
+        return statusRepository.findById(id)
+                .map(this::mapToPojo)
+                .orElseThrow(() -> new RuntimeException("Status not found with ID: " + id));
+    }
+
+    // Add a Status
+    public Status addStatus(Status status) {
+        StatusEntity savedEntity = statusRepository.save(mapToEntity(status));
+        return mapToPojo(savedEntity);
+    }
+
+    // Update a Status
+    public Status updateStatus(Long id, Status status) {
+        StatusEntity existingEntity = statusRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Status not found with ID: " + id));
+
+        existingEntity.setStatusName(status.getStatusName());
+
+        StatusEntity updatedEntity = statusRepository.save(existingEntity);
+        return mapToPojo(updatedEntity);
+    }
+
+    // Delete a Status
+    public void deleteStatus(Long id) {
+        statusRepository.deleteById(id);
+    }
+
+    // Mapping Methods
+    private Status mapToPojo(StatusEntity entity) {
+        Status status = new Status();
+        status.setId(entity.getId());
+        status.setStatusName(entity.getStatusName());
+        return status;
+    }
+
+    private StatusEntity mapToEntity(Status status) {
+        StatusEntity entity = new StatusEntity();
+        entity.setId(status.getId());
+        entity.setStatusName(status.getStatusName());
+        return entity;
+    }
+}
+
+9. UserService
+
+@Service
+public class UserService {
+    private final UserRepository userRepository;
+
+    @Autowired
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    // Fetch All Users
+    public List<User> fetchAllUsers() {
+        return userRepository.findAll()
+                .stream()
+                .map(this::mapToPojo)
+                .collect(Collectors.toList());
+    }
+
+    // Fetch User by ID
+    public User fetchUserById(Long id) {
+        return userRepository.findById(id)
+                .map(this::mapToPojo)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
+    }
+
+    // Add a User
+    public User addUser(User user) {
+        UserEntity savedEntity = userRepository.save(mapToEntity(user));
+        return mapToPojo(savedEntity);
+    }
+
+    // Update a User
+    public User updateUser(Long id, User user) {
+        UserEntity existingEntity = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
+
+        existingEntity.setName(user.getName());
+        existingEntity.setEmail(user.getEmail());
+        existingEntity.setPhone(user.getPhone());
+        existingEntity.setRole(user.getRoleId());
+
+        UserEntity updatedEntity = userRepository.save(existingEntity);
+        return mapToPojo(updatedEntity);
+    }
+
+    // Delete a User
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
+    }
+
+    // Mapping Methods
+    private User mapToPojo(UserEntity entity) {
+        User user = new User();
+        user.setId(entity.getId());
+        user.setName(entity.getName());
+        user.setEmail(entity.getEmail());
+        user.setPhone(entity.getPhone());
+        user.setRoleId(entity.getRole().getId());
+        return user;
+    }
+
+    private UserEntity mapToEntity(User user) {
+        UserEntity entity = new UserEntity();
+        entity.setId(user.getId());
+        entity.setName(user.getName());
+        entity.setEmail(user.getEmail());
+        entity.setPhone(user.getPhone());
+        // Use service logic to fetch RoleEntity reference
+        return entity;
+    }
+}
+
+This completes all the service classes for your project. Let me know if you need additional help, such as integrating them with the controller or additional business logic.
