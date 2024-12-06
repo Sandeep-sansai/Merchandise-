@@ -553,3 +553,218 @@ UserService
 	•	Error Handling: Throw exceptions like RuntimeException or use custom exceptions for missing data.
 
 Let me know if you want fully implemented service classes for all entities or detailed controllers using these services!
+
+
+
+?????#?%~#,#,%?#?#,#,#,^#~£?$,%~$?$>.$,>,$?$
+
+
+
+
+Here are the Service Layer classes for all entities with the required CRUD methods:
+
+Each service class will implement the logic to handle operations and transform data between entities and POJOs.
+
+1. BookingService
+
+@Service
+public class BookingService {
+    private final BookingRepository bookingRepository;
+
+    @Autowired
+    public BookingService(BookingRepository bookingRepository) {
+        this.bookingRepository = bookingRepository;
+    }
+
+    // Fetch All Bookings
+    public List<Booking> fetchAllBookings() {
+        return bookingRepository.findAll()
+                .stream()
+                .map(this::mapToPojo)
+                .collect(Collectors.toList());
+    }
+
+    // Fetch Booking by ID
+    public Booking fetchBookingById(Long id) {
+        return bookingRepository.findById(id)
+                .map(this::mapToPojo)
+                .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + id));
+    }
+
+    // Add a Booking
+    public Booking addBooking(Booking booking) {
+        BookingEntity savedEntity = bookingRepository.save(mapToEntity(booking));
+        return mapToPojo(savedEntity);
+    }
+
+    // Update a Booking
+    public Booking updateBooking(Long id, Booking booking) {
+        BookingEntity existingEntity = bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + id));
+
+        existingEntity.setStatus(booking.getStatus());
+        existingEntity.setBookingDate(booking.getBookingDate());
+        BookingEntity updatedEntity = bookingRepository.save(existingEntity);
+
+        return mapToPojo(updatedEntity);
+    }
+
+    // Delete a Booking
+    public void deleteBooking(Long id) {
+        bookingRepository.deleteById(id);
+    }
+
+    // Mapping Methods
+    private Booking mapToPojo(BookingEntity entity) {
+        Booking booking = new Booking();
+        booking.setId(entity.getId());
+        booking.setUserId(entity.getUser().getId());
+        booking.setFlightId(entity.getFlight().getId());
+        booking.setStatus(entity.getStatus().getStatusName());
+        booking.setBookingDate(entity.getBookingDate());
+        return booking;
+    }
+
+    private BookingEntity mapToEntity(Booking booking) {
+        BookingEntity entity = new BookingEntity();
+        entity.setId(booking.getId());
+        // Use service logic to fetch and set UserEntity, FlightEntity, and StatusEntity.
+        entity.setBookingDate(booking.getBookingDate());
+        return entity;
+    }
+}
+
+2. CityService
+
+@Service
+public class CityService {
+    private final CityRepository cityRepository;
+
+    @Autowired
+    public CityService(CityRepository cityRepository) {
+        this.cityRepository = cityRepository;
+    }
+
+    // Fetch All Cities
+    public List<City> fetchAllCities() {
+        return cityRepository.findAll()
+                .stream()
+                .map(this::mapToPojo)
+                .collect(Collectors.toList());
+    }
+
+    // Fetch City by ID
+    public City fetchCityById(Long id) {
+        return cityRepository.findById(id)
+                .map(this::mapToPojo)
+                .orElseThrow(() -> new RuntimeException("City not found with ID: " + id));
+    }
+
+    // Add a City
+    public City addCity(City city) {
+        CityEntity savedEntity = cityRepository.save(mapToEntity(city));
+        return mapToPojo(savedEntity);
+    }
+
+    // Update a City
+    public City updateCity(Long id, City city) {
+        CityEntity existingEntity = cityRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("City not found with ID: " + id));
+
+        existingEntity.setCityName(city.getCityName());
+        CityEntity updatedEntity = cityRepository.save(existingEntity);
+
+        return mapToPojo(updatedEntity);
+    }
+
+    // Delete a City
+    public void deleteCity(Long id) {
+        cityRepository.deleteById(id);
+    }
+
+    // Mapping Methods
+    private City mapToPojo(CityEntity entity) {
+        City city = new City();
+        city.setId(entity.getId());
+        city.setCityName(entity.getCityName());
+        return city;
+    }
+
+    private CityEntity mapToEntity(City city) {
+        CityEntity entity = new CityEntity();
+        entity.setId(city.getId());
+        entity.setCityName(city.getCityName());
+        return entity;
+    }
+}
+
+3. CredentialsService
+
+@Service
+public class CredentialsService {
+    private final CredentialsRepository credentialsRepository;
+
+    @Autowired
+    public CredentialsService(CredentialsRepository credentialsRepository) {
+        this.credentialsRepository = credentialsRepository;
+    }
+
+    // Fetch All Credentials
+    public List<Credentials> fetchAllCredentials() {
+        return credentialsRepository.findAll()
+                .stream()
+                .map(this::mapToPojo)
+                .collect(Collectors.toList());
+    }
+
+    // Fetch Credentials by ID
+    public Credentials fetchCredentialsById(Long id) {
+        return credentialsRepository.findById(id)
+                .map(this::mapToPojo)
+                .orElseThrow(() -> new RuntimeException("Credentials not found with ID: " + id));
+    }
+
+    // Add Credentials
+    public Credentials addCredentials(Credentials credentials) {
+        CredentialsEntity savedEntity = credentialsRepository.save(mapToEntity(credentials));
+        return mapToPojo(savedEntity);
+    }
+
+    // Update Credentials
+    public Credentials updateCredentials(Long id, Credentials credentials) {
+        CredentialsEntity existingEntity = credentialsRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Credentials not found with ID: " + id));
+
+        existingEntity.setUsername(credentials.getUsername());
+        existingEntity.setPassword(credentials.getPassword());
+        CredentialsEntity updatedEntity = credentialsRepository.save(existingEntity);
+
+        return mapToPojo(updatedEntity);
+    }
+
+    // Delete Credentials
+    public void deleteCredentials(Long id) {
+        credentialsRepository.deleteById(id);
+    }
+
+    // Mapping Methods
+    private Credentials mapToPojo(CredentialsEntity entity) {
+        Credentials credentials = new Credentials();
+        credentials.setId(entity.getId());
+        credentials.setUsername(entity.getUsername());
+        credentials.setPassword(entity.getPassword());
+        return credentials;
+    }
+
+    private CredentialsEntity mapToEntity(Credentials credentials) {
+        CredentialsEntity entity = new CredentialsEntity();
+        entity.setId(credentials.getId());
+        entity.setUsername(credentials.getUsername());
+        entity.setPassword(credentials.getPassword());
+        return entity;
+    }
+}
+
+Repeat similar patterns for all other entities, such as FlightService, RoleService, SeatService, StatusService, and UserService.
+
+Let me know if you’d like me to generate the remaining classes or clarify anything specific!
