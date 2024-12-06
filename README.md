@@ -1633,3 +1633,84 @@ Next Steps
 	4.	Security: Secure the endpoints using Spring Security if necessary, especially for sensitive entities like Credentials.
 
 Let me know if you need any help with these next steps!
+
+
+
+Here’s sample SQL data to insert into the tables created for your entities. These values should provide a meaningful dataset for testing your APIs on Swagger:
+
+1. city Table
+
+INSERT INTO city (id, name) VALUES
+(1, 'New York'),
+(2, 'Los Angeles'),
+(3, 'Chicago'),
+(4, 'Houston'),
+(5, 'Miami');
+
+2. status Table
+
+INSERT INTO status (id, name) VALUES
+(1, 'Scheduled'),
+(2, 'On Time'),
+(3, 'Delayed'),
+(4, 'Cancelled');
+
+3. role Table
+
+INSERT INTO role (id, name) VALUES
+(1, 'Admin'),
+(2, 'User');
+
+4. user Table
+
+INSERT INTO user (id, first_name, last_name, email, phone_number, age, role_id) VALUES
+(1, 'John', 'Doe', 'john.doe@example.com', '1234567890', 30, 2),
+(2, 'Jane', 'Smith', 'jane.smith@example.com', '0987654321', 25, 2),
+(3, 'Alice', 'Johnson', 'alice.johnson@example.com', '5551234567', 28, 1);
+
+5. credentials Table
+
+INSERT INTO credentials (id, username, password, user_id) VALUES
+(1, 'johndoe', 'password123', 1),
+(2, 'janesmith', 'password456', 2),
+(3, 'admin', 'adminpass', 3);
+
+6. flight Table
+
+INSERT INTO flight (id, flight_number, airline, source_city_id, destination_city_id, departure_time, arrival_time, status_id) VALUES
+(1, 'AA101', 'American Airlines', 1, 2, '2024-12-07 10:00:00', '2024-12-07 13:00:00', 1),
+(2, 'DL202', 'Delta Airlines', 2, 3, '2024-12-07 15:00:00', '2024-12-07 18:00:00', 2),
+(3, 'UA303', 'United Airlines', 3, 4, '2024-12-08 09:00:00', '2024-12-08 12:00:00', 3);
+
+7. flight_info Table
+
+INSERT INTO flight_info (id, duration, price, baggage_allowance, flight_id) VALUES
+(1, '3h', 300.00, '20kg', 1),
+(2, '3h', 250.00, '25kg', 2),
+(3, '3h', 280.00, '30kg', 3);
+
+8. seat Table
+
+INSERT INTO seat (id, seat_number, is_available, flight_id) VALUES
+(1, '1A', TRUE, 1),
+(2, '1B', TRUE, 1),
+(3, '2A', FALSE, 2),
+(4, '2B', TRUE, 2),
+(5, '3A', FALSE, 3);
+
+9. booking Table
+
+INSERT INTO booking (id, booking_date, user_id, flight_id, status_id) VALUES
+(1, '2024-12-06', 1, 1, 1),
+(2, '2024-12-06', 2, 2, 2),
+(3, '2024-12-07', 1, 3, 3);
+
+Testing in Swagger
+
+Once you insert these values into your database, you can test your CRUD operations using Swagger:
+	•	GET Endpoints: Use GET endpoints to verify that all data is being fetched correctly from the database.
+	•	POST Endpoints: Try adding new rows to the database.
+	•	PUT Endpoints: Update existing rows and verify changes.
+	•	DELETE Endpoints: Remove records and confirm they’re deleted.
+
+Let me know if you need help running these or debugging issues during testing!
