@@ -1446,3 +1446,190 @@ Testing the APIs
 	•	DELETE /api/{resource}/{id}: Delete an entity.
 
 Let me know if you need the full code for specific controllers or additional setup instructions!
+
+
+
+Here are the remaining controllers for the entities you asked for:
+
+6. FlightInfoController
+
+@RestController
+@RequestMapping("/api/flight-info")
+public class FlightInfoController {
+
+    private final FlightInfoService flightInfoService;
+
+    @Autowired
+    public FlightInfoController(FlightInfoService flightInfoService) {
+        this.flightInfoService = flightInfoService;
+    }
+
+    @GetMapping
+    public List<FlightInfo> getAllFlightInfo() {
+        return flightInfoService.fetchAllFlightInfo();
+    }
+
+    @GetMapping("/{id}")
+    public FlightInfo getFlightInfoById(@PathVariable Long id) {
+        return flightInfoService.fetchFlightInfoById(id);
+    }
+
+    @PostMapping
+    public FlightInfo createFlightInfo(@RequestBody FlightInfo flightInfo) {
+        return flightInfoService.addFlightInfo(flightInfo);
+    }
+
+    @PutMapping("/{id}")
+    public FlightInfo updateFlightInfo(@PathVariable Long id, @RequestBody FlightInfo flightInfo) {
+        return flightInfoService.updateFlightInfo(id, flightInfo);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteFlightInfo(@PathVariable Long id) {
+        flightInfoService.deleteFlightInfo(id);
+        return ResponseEntity.noContent().build();
+    }
+}
+
+7. RoleController
+
+@RestController
+@RequestMapping("/api/roles")
+public class RoleController {
+
+    private final RoleService roleService;
+
+    @Autowired
+    public RoleController(RoleService roleService) {
+        this.roleService = roleService;
+    }
+
+    @GetMapping
+    public List<Role> getAllRoles() {
+        return roleService.fetchAllRoles();
+    }
+
+    @GetMapping("/{id}")
+    public Role getRoleById(@PathVariable Long id) {
+        return roleService.fetchRoleById(id);
+    }
+
+    @PostMapping
+    public Role createRole(@RequestBody Role role) {
+        return roleService.addRole(role);
+    }
+
+    @PutMapping("/{id}")
+    public Role updateRole(@PathVariable Long id, @RequestBody Role role) {
+        return roleService.updateRole(id, role);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteRole(@PathVariable Long id) {
+        roleService.deleteRole(id);
+        return ResponseEntity.noContent().build();
+    }
+}
+
+8. StatusController
+
+@RestController
+@RequestMapping("/api/status")
+public class StatusController {
+
+    private final StatusService statusService;
+
+    @Autowired
+    public StatusController(StatusService statusService) {
+        this.statusService = statusService;
+    }
+
+    @GetMapping
+    public List<Status> getAllStatuses() {
+        return statusService.fetchAllStatuses();
+    }
+
+    @GetMapping("/{id}")
+    public Status getStatusById(@PathVariable Long id) {
+        return statusService.fetchStatusById(id);
+    }
+
+    @PostMapping
+    public Status createStatus(@RequestBody Status status) {
+        return statusService.addStatus(status);
+    }
+
+    @PutMapping("/{id}")
+    public Status updateStatus(@PathVariable Long id, @RequestBody Status status) {
+        return statusService.updateStatus(id, status);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteStatus(@PathVariable Long id) {
+        statusService.deleteStatus(id);
+        return ResponseEntity.noContent().build();
+    }
+}
+
+9. CredentialsController
+
+@RestController
+@RequestMapping("/api/credentials")
+public class CredentialsController {
+
+    private final CredentialsService credentialsService;
+
+    @Autowired
+    public CredentialsController(CredentialsService credentialsService) {
+        this.credentialsService = credentialsService;
+    }
+
+    @GetMapping
+    public List<Credentials> getAllCredentials() {
+        return credentialsService.fetchAllCredentials();
+    }
+
+    @GetMapping("/{id}")
+    public Credentials getCredentialsById(@PathVariable Long id) {
+        return credentialsService.fetchCredentialsById(id);
+    }
+
+    @PostMapping
+    public Credentials createCredentials(@RequestBody Credentials credentials) {
+        return credentialsService.addCredentials(credentials);
+    }
+
+    @PutMapping("/{id}")
+    public Credentials updateCredentials(@PathVariable Long id, @RequestBody Credentials credentials) {
+        return credentialsService.updateCredentials(id, credentials);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCredentials(@PathVariable Long id) {
+        credentialsService.deleteCredentials(id);
+        return ResponseEntity.noContent().build();
+    }
+}
+
+Summary of All Controllers
+
+Here’s a quick overview of the endpoints created for each entity:
+
+Entity	Endpoint	Description
+Booking	/api/bookings	CRUD operations for bookings
+City	/api/cities	CRUD operations for cities
+Flight	/api/flights	CRUD operations for flights
+Seat	/api/seats	CRUD operations for seats
+User	/api/users	CRUD operations for users
+FlightInfo	/api/flight-info	CRUD operations for flight info
+Role	/api/roles	CRUD operations for roles
+Status	/api/status	CRUD operations for statuses
+Credentials	/api/credentials	CRUD operations for credentials
+
+Next Steps
+	1.	Test the Controllers: Use Postman or a similar tool to test the CRUD endpoints for each entity.
+	2.	Integration with Frontend: If there’s a frontend, connect these endpoints to the corresponding UI components.
+	3.	Validation & Error Handling: Add proper validation and exception handling in the service layer and ensure consistent error responses in the controller.
+	4.	Security: Secure the endpoints using Spring Security if necessary, especially for sensitive entities like Credentials.
+
+Let me know if you need any help with these next steps!
