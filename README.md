@@ -337,3 +337,219 @@ Why These DAOs Are Useful:
 	•	These DAOs will be used in the Service Layer to interact with the database seamlessly.
 
 Let me know if you’d like to proceed with the Service Layer implementation or have further questions!
+
+
+
+
+
+&&&&&-&-&-&-&-&-&-&-&&-&-&-&-&-&-&&-&-&-&-&-&
+
+
+
+To create a complete POJO Layer and Service Layer for all the entities, here is the implementation:
+
+1. POJO Layer
+
+Each POJO will represent a simplified, plain Java object (DTO-like structure) that is used to transfer data between the Service Layer and the Controller.
+
+Example: Booking POJO
+
+public class Booking {
+    private Long id;
+    private Long userId;
+    private Long flightId;
+    private String status;
+    private LocalDate bookingDate;
+
+    // Getters and Setters
+}
+
+POJO Classes for All Entities
+
+Below are the POJOs for all the entities.
+
+City POJO
+
+public class City {
+    private Long id;
+    private String cityName;
+
+    // Getters and Setters
+}
+
+Credentials POJO
+
+public class Credentials {
+    private Long id;
+    private String username;
+    private String password;
+
+    // Getters and Setters
+}
+
+Flight POJO
+
+public class Flight {
+    private Long id;
+    private String source;
+    private String destination;
+    private LocalDate departureDate;
+    private LocalTime departureTime;
+
+    // Getters and Setters
+}
+
+FlightInfo POJO
+
+public class FlightInfo {
+    private Long id;
+    private String flightNumber;
+    private String airlineName;
+
+    // Getters and Setters
+}
+
+Role POJO
+
+public class Role {
+    private Long id;
+    private String roleName;
+
+    // Getters and Setters
+}
+
+Seat POJO
+
+public class Seat {
+    private Long id;
+    private Long flightId;
+    private String seatNumber;
+    private boolean isBooked;
+
+    // Getters and Setters
+}
+
+Status POJO
+
+public class Status {
+    private Long id;
+    private String statusName;
+
+    // Getters and Setters
+}
+
+User POJO
+
+public class User {
+    private Long id;
+    private String firstName;
+    private String lastName;
+    private String email;
+    private String phoneNumber;
+
+    // Getters and Setters
+}
+
+2. Service Layer
+
+The Service Layer contains business logic and ensures data transformation between Entities and POJOs.
+
+Example: BookingService
+
+@Service
+public class BookingService {
+    private final BookingRepository bookingRepository;
+
+    @Autowired
+    public BookingService(BookingRepository bookingRepository) {
+        this.bookingRepository = bookingRepository;
+    }
+
+    // Fetch All Bookings
+    public List<Booking> fetchAllBookings() {
+        List<BookingEntity> bookingEntities = bookingRepository.findAll();
+        return bookingEntities.stream().map(this::mapToPojo).collect(Collectors.toList());
+    }
+
+    // Fetch a Booking by ID
+    public Booking fetchBookingById(Long id) {
+        BookingEntity bookingEntity = bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + id));
+        return mapToPojo(bookingEntity);
+    }
+
+    // Add a Booking
+    public Booking addBooking(Booking booking) {
+        BookingEntity bookingEntity = mapToEntity(booking);
+        BookingEntity savedEntity = bookingRepository.save(bookingEntity);
+        return mapToPojo(savedEntity);
+    }
+
+    // Update a Booking
+    public Booking updateBooking(Long id, Booking booking) {
+        BookingEntity bookingEntity = bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + id));
+
+        bookingEntity.setStatus(booking.getStatus());
+        bookingEntity.setBookingDate(booking.getBookingDate());
+        BookingEntity updatedEntity = bookingRepository.save(bookingEntity);
+
+        return mapToPojo(updatedEntity);
+    }
+
+    // Delete a Booking
+    public void deleteBooking(Long id) {
+        bookingRepository.deleteById(id);
+    }
+
+    // Mapping Methods
+    private Booking mapToPojo(BookingEntity entity) {
+        Booking pojo = new Booking();
+        pojo.setId(entity.getId());
+        pojo.setUserId(entity.getUser().getId());
+        pojo.setFlightId(entity.getFlight().getId());
+        pojo.setStatus(entity.getStatus().getStatusName());
+        pojo.setBookingDate(entity.getBookingDate());
+        return pojo;
+    }
+
+    private BookingEntity mapToEntity(Booking pojo) {
+        BookingEntity entity = new BookingEntity();
+        entity.setId(pojo.getId());
+        // Assume UserEntity and FlightEntity are fetched separately in Service Layer logic
+        entity.setBookingDate(pojo.getBookingDate());
+        return entity;
+    }
+}
+
+Service Classes for Other Entities
+
+Below is an outline for the other services. These follow the same logic as the BookingService.
+
+CityService
+	•	Fetch all cities.
+	•	Fetch a city by ID or name.
+	•	Add, update, and delete city records.
+	•	Convert between City and CityEntity.
+
+CredentialsService
+	•	Manage user credentials, fetch by username, and update passwords.
+
+FlightService
+	•	Fetch all flights.
+	•	Fetch flights by source, destination, or date.
+	•	Add, update, and delete flights.
+	•	Convert between Flight and FlightEntity.
+
+UserService
+	•	Fetch all users.
+	•	Fetch user by ID, email, or phone number.
+	•	Add, update, and delete users.
+	•	Convert between User and UserEntity.
+
+3. Key Concepts
+	•	Mapping: Each service uses helper methods (mapToPojo and mapToEntity) to transform between POJOs and Entities.
+	•	CRUD Operations: All service classes include basic CRUD methods: fetchAll, fetchById, add, update, and delete.
+	•	Error Handling: Throw exceptions like RuntimeException or use custom exceptions for missing data.
+
+Let me know if you want fully implemented service classes for all entities or detailed controllers using these services!
