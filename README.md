@@ -1222,3 +1222,227 @@ public class UserService {
 }
 
 This completes all the service classes for your project. Let me know if you need additional help, such as integrating them with the controller or additional business logic.
+
+
+
+
+
+
+To integrate the service classes with the controllers, we’ll create RESTful controllers that handle HTTP requests and delegate the logic to the corresponding service classes. These controllers will expose endpoints for CRUD operations like fetching all entities, fetching by ID, adding, updating, and deleting.
+
+Here’s how you can implement the controllers:
+
+1. BookingController
+
+@RestController
+@RequestMapping("/api/bookings")
+public class BookingController {
+
+    private final BookingService bookingService;
+
+    @Autowired
+    public BookingController(BookingService bookingService) {
+        this.bookingService = bookingService;
+    }
+
+    @GetMapping
+    public List<Booking> getAllBookings() {
+        return bookingService.fetchAllBookings();
+    }
+
+    @GetMapping("/{id}")
+    public Booking getBookingById(@PathVariable Long id) {
+        return bookingService.fetchBookingById(id);
+    }
+
+    @PostMapping
+    public Booking createBooking(@RequestBody Booking booking) {
+        return bookingService.addBooking(booking);
+    }
+
+    @PutMapping("/{id}")
+    public Booking updateBooking(@PathVariable Long id, @RequestBody Booking booking) {
+        return bookingService.updateBooking(id, booking);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBooking(@PathVariable Long id) {
+        bookingService.deleteBooking(id);
+        return ResponseEntity.noContent().build();
+    }
+}
+
+2. CityController
+
+@RestController
+@RequestMapping("/api/cities")
+public class CityController {
+
+    private final CityService cityService;
+
+    @Autowired
+    public CityController(CityService cityService) {
+        this.cityService = cityService;
+    }
+
+    @GetMapping
+    public List<City> getAllCities() {
+        return cityService.fetchAllCities();
+    }
+
+    @GetMapping("/{id}")
+    public City getCityById(@PathVariable Long id) {
+        return cityService.fetchCityById(id);
+    }
+
+    @PostMapping
+    public City createCity(@RequestBody City city) {
+        return cityService.addCity(city);
+    }
+
+    @PutMapping("/{id}")
+    public City updateCity(@PathVariable Long id, @RequestBody City city) {
+        return cityService.updateCity(id, city);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCity(@PathVariable Long id) {
+        cityService.deleteCity(id);
+        return ResponseEntity.noContent().build();
+    }
+}
+
+3. FlightController
+
+@RestController
+@RequestMapping("/api/flights")
+public class FlightController {
+
+    private final FlightService flightService;
+
+    @Autowired
+    public FlightController(FlightService flightService) {
+        this.flightService = flightService;
+    }
+
+    @GetMapping
+    public List<Flight> getAllFlights() {
+        return flightService.fetchAllFlights();
+    }
+
+    @GetMapping("/{id}")
+    public Flight getFlightById(@PathVariable Long id) {
+        return flightService.fetchFlightById(id);
+    }
+
+    @PostMapping
+    public Flight createFlight(@RequestBody Flight flight) {
+        return flightService.addFlight(flight);
+    }
+
+    @PutMapping("/{id}")
+    public Flight updateFlight(@PathVariable Long id, @RequestBody Flight flight) {
+        return flightService.updateFlight(id, flight);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteFlight(@PathVariable Long id) {
+        flightService.deleteFlight(id);
+        return ResponseEntity.noContent().build();
+    }
+}
+
+4. SeatController
+
+@RestController
+@RequestMapping("/api/seats")
+public class SeatController {
+
+    private final SeatService seatService;
+
+    @Autowired
+    public SeatController(SeatService seatService) {
+        this.seatService = seatService;
+    }
+
+    @GetMapping
+    public List<Seat> getAllSeats() {
+        return seatService.fetchAllSeats();
+    }
+
+    @GetMapping("/{id}")
+    public Seat getSeatById(@PathVariable Long id) {
+        return seatService.fetchSeatById(id);
+    }
+
+    @PostMapping
+    public Seat createSeat(@RequestBody Seat seat) {
+        return seatService.addSeat(seat);
+    }
+
+    @PutMapping("/{id}")
+    public Seat updateSeat(@PathVariable Long id, @RequestBody Seat seat) {
+        return seatService.updateSeat(id, seat);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteSeat(@PathVariable Long id) {
+        seatService.deleteSeat(id);
+        return ResponseEntity.noContent().build();
+    }
+}
+
+5. UserController
+
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+
+    private final UserService userService;
+
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
+    @GetMapping
+    public List<User> getAllUsers() {
+        return userService.fetchAllUsers();
+    }
+
+    @GetMapping("/{id}")
+    public User getUserById(@PathVariable Long id) {
+        return userService.fetchUserById(id);
+    }
+
+    @PostMapping
+    public User createUser(@RequestBody User user) {
+        return userService.addUser(user);
+    }
+
+    @PutMapping("/{id}")
+    public User updateUser(@PathVariable Long id, @RequestBody User user) {
+        return userService.updateUser(id, user);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
+    }
+}
+
+Remaining Controllers
+
+You can follow the same pattern for the remaining entities (like StatusController, RoleController, etc.) by using their respective service classes.
+
+Testing the APIs
+	1.	Use Postman or any API testing tool to test the endpoints.
+	2.	Perform the following CRUD operations:
+	•	GET /api/{resource}: Fetch all entities.
+	•	GET /api/{resource}/{id}: Fetch a single entity by ID.
+	•	POST /api/{resource}: Create a new entity by providing JSON data.
+	•	PUT /api/{resource}/{id}: Update an entity by providing JSON data.
+	•	DELETE /api/{resource}/{id}: Delete an entity.
+
+Let me know if you need the full code for specific controllers or additional setup instructions!
