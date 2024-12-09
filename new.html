@@ -659,3 +659,168 @@ Key Notes
 	•	Ensure HttpClientModule is provided either globally or in each component where HTTP calls are made.
 
 Let me know if you need further assistance with Angular Standalone Components or integrating with your backend!
+
+
+
+
+The error “Can’t bind to ngModel since it isn’t a known property” occurs because Angular Forms is not imported into your project. The ngModel directive is provided by the FormsModule, which needs to be explicitly included.
+
+Here’s how to fix it for standalone components:
+
+1. Import FormsModule in Standalone Components
+
+Since you’re using Angular standalone components, you need to explicitly import the FormsModule in each component that uses ngModel.
+
+Update login.component.ts:
+
+import { Component } from '@angular/core';
+import { AuthenticationService } from '../../services/authentication.service';
+import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+
+@Component({
+  selector: 'app-login',
+  standalone: true,
+  imports: [FormsModule],
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css'],
+})
+export class LoginComponent {
+  email = '';
+  password = '';
+
+  constructor(private authService: AuthenticationService, private router: Router) {}
+
+  onLogin(): void {
+    this.authService.login(this.email, this.password).subscribe(
+      (response) => {
+        this.authService.saveToken(response.token);
+        this.router.navigate(['/']);
+      },
+      (error) => {
+        console.error('Login failed', error);
+      }
+    );
+  }
+}
+
+Update register.component.ts:
+
+import { Component } from '@angular/core';
+import { AuthenticationService } from '../../services/authentication.service';
+import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+
+@Component({
+  selector: 'app-register',
+  standalone: true,
+  imports: [FormsModule],
+  templateUrl: './register.component.html',
+  styleUrls: ['./register.component.css'],
+})
+export class RegisterComponent {
+  user = {
+    name: '',
+    email: '',
+    password: '',
+  };
+
+  constructor(private authService: AuthenticationService, private router: Router) {}
+
+  onRegister(): void {
+    this.authService.register(this.user).subscribe(
+      (response) => {
+        console.log('Registration successful');
+        this.router.navigate(['/login']);
+      },
+      (error) => {
+        console.error('Registration failed', error);
+      }
+    );
+  }
+}
+
+2. Add FormsModule to Other Components Using ngModel
+
+If other components (like your HomeComponent) use ngModel, remember to also import FormsModule in those components.
+
+3. Ensure Correct Syntax in HTML
+
+Make sure you are using the [(ngModel)] directive correctly in your HTML templates.
+
+login.component.html:
+
+<div class="login-container">
+  <h2>Login</h2>
+  <form (submit)="onLogin()">
+    <div>
+      <label for="email">Email:</label>
+      <input type="email" id="email" [(ngModel)]="email" name="email" required />
+    </div>
+    <div>
+      <label for="password">Password:</label>
+      <input
+        type="password"
+        id="password"
+        [(ngModel)]="password"
+        name="password"
+        required
+      />
+    </div>
+    <button type="submit">Login</button>
+    <p>
+      Don’t have an account? <a routerLink="/register">Register here</a>
+    </p>
+  </form>
+</div>
+
+register.component.html:
+
+<div class="register-container">
+  <h2>Register</h2>
+  <form (submit)="onRegister()">
+    <div>
+      <label for="name">Name:</label>
+      <input type="text" id="name" [(ngModel)]="user.name" name="name" required />
+    </div>
+    <div>
+      <label for="email">Email:</label>
+      <input type="email" id="email" [(ngModel)]="user.email" name="email" required />
+    </div>
+    <div>
+      <label for="password">Password:</label>
+      <input
+        type="password"
+        id="password"
+        [(ngModel)]="user.password"
+        name="password"
+        required
+      />
+    </div>
+    <button type="submit">Register</button>
+    <p>
+      Already have an account? <a routerLink="/login">Login here</a>
+    </p>
+  </form>
+</div>
+
+4. Verify package.json
+
+Ensure that your project has the required Angular packages installed:
+
+"dependencies": {
+  "@angular/forms": "^15.0.0",
+  "@angular/common": "^15.0.0",
+  "@angular/router": "^15.0.0",
+  ...
+}
+
+Run this command if necessary:
+
+npm install @angular/forms
+
+5. Test the Application
+
+Reload your application and verify that the ngModel bindings now work correctly in both the login and registration forms.
+
+Let me know if you encounter further issues!
