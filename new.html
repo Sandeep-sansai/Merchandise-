@@ -304,3 +304,180 @@ JWT Authorization Header:
 headers: { Authorization: `Bearer ${token}` }
 
 This completes the Angular Frontend with login, registration, and a dynamic hero section integrated with the Spring Boot backend.
+
+
+
+The Authentication Service should be written in the Angular frontend within a service file. Angular services are used to handle shared logic, API calls, and application-level data across components. Here’s a step-by-step guide on where and how to create and use the authentication service:
+
+1. Generate the Service File
+
+You can create the service file using Angular CLI or manually:
+
+Using Angular CLI:
+
+Run the following command in your terminal:
+
+ng generate service services/authentication
+
+This will create two files:
+	•	src/app/services/authentication.service.ts
+	•	src/app/services/authentication.service.spec.ts (used for testing)
+
+2. Write the Authentication Service
+
+The authentication.service.ts file will include methods for user login, registration, and managing authentication tokens.
+
+Example: src/app/services/authentication.service.ts:
+
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class AuthenticationService {
+  private baseUrl = 'http://localhost:8080/api/auth'; // Backend URL
+
+  constructor(private http: HttpClient) {}
+
+  // User login
+  login(email: string, password: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/login`, { email, password });
+  }
+
+  // User registration
+  register(user: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/register`, user);
+  }
+
+  // Store JWT token in local storage
+  saveToken(token: string): void {
+    localStorage.setItem('authToken', token);
+  }
+
+  // Retrieve JWT token from local storage
+  getToken(): string | null {
+    return localStorage.getItem('authToken');
+  }
+
+  // Check if the user is authenticated
+  isAuthenticated(): boolean {
+    return !!this.getToken();
+  }
+
+  // Logout the user
+  logout(): void {
+    localStorage.removeItem('authToken');
+  }
+}
+
+3. Provide the Service Globally
+
+The @Injectable({ providedIn: 'root' }) decorator ensures that the service is available application-wide without explicitly adding it to the providers array in the AppModule.
+
+4. Import HttpClientModule in AppModule
+
+The HttpClient module is required to make API requests.
+
+src/app/app.module.ts:
+
+import { HttpClientModule } from '@angular/common/http';
+
+@NgModule({
+  declarations: [
+    // Your components
+  ],
+  imports: [
+    // Other modules
+    HttpClientModule, // Import HttpClientModule here
+  ],
+  providers: [],
+  bootstrap: [AppComponent],
+})
+export class AppModule {}
+
+5. Use the Service in Components
+
+Inject the AuthenticationService into any component where you need authentication functionalities, such as login or registration.
+
+Example: login.component.ts
+
+import { Component } from '@angular/core';
+import { AuthenticationService } from '../../services/authentication.service';
+import { Router } from '@angular/router';
+
+@Component({
+  selector: 'app-login',
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css'],
+})
+export class LoginComponent {
+  email = '';
+  password = '';
+
+  constructor(private authService: AuthenticationService, private router: Router) {}
+
+  onLogin(): void {
+    this.authService.login(this.email, this.password).subscribe(
+      (response) => {
+        this.authService.saveToken(response.token); // Save token to local storage
+        this.router.navigate(['/']); // Navigate to the home page
+      },
+      (error) => {
+        console.error('Login failed', error);
+      }
+    );
+  }
+}
+
+6. Example for Registration
+
+register.component.ts:
+
+import { Component } from '@angular/core';
+import { AuthenticationService } from '../../services/authentication.service';
+import { Router } from '@angular/router';
+
+@Component({
+  selector: 'app-register',
+  templateUrl: './register.component.html',
+  styleUrls: ['./register.component.css'],
+})
+export class RegisterComponent {
+  user = {
+    name: '',
+    email: '',
+    password: '',
+  };
+
+  constructor(private authService: AuthenticationService, private router: Router) {}
+
+  onRegister(): void {
+    this.authService.register(this.user).subscribe(
+      (response) => {
+        console.log('Registration successful');
+        this.router.navigate(['/login']); // Redirect to login after registration
+      },
+      (error) => {
+        console.error('Registration failed', error);
+      }
+    );
+  }
+}
+
+Folder Structure
+
+src/
+├── app/
+│   ├── components/
+│   │   ├── home/
+│   │   ├── login/
+│   │   ├── register/
+│   ├── services/
+│   │   ├── authentication.service.ts
+│   │   ├── authentication.service.spec.ts
+│   ├── app.module.ts
+│   ├── app-routing.module.ts
+
+By placing the Authentication Service in src/app/services, you ensure it is reusable and well-organized for your Angular project.
