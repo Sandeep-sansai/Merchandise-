@@ -481,3 +481,181 @@ src/
 │   ├── app-routing.module.ts
 
 By placing the Authentication Service in src/app/services, you ensure it is reusable and well-organized for your Angular project.
+
+
+
+If your Angular project does not have an app.module.ts file, it could mean you are using Angular Standalone Components, introduced in Angular 14, which allows you to skip creating a centralized module.
+
+Here’s how you should proceed to include the Authentication Service and other features in a standalone Angular application:
+
+1. Setup the Authentication Service
+
+Even without app.module.ts, the AuthenticationService is created the same way:
+
+authentication.service.ts:
+
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root', // Automatically makes the service available application-wide
+})
+export class AuthenticationService {
+  private baseUrl = 'http://localhost:8080/api/auth';
+
+  constructor(private http: HttpClient) {}
+
+  login(email: string, password: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/login`, { email, password });
+  }
+
+  register(user: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/register`, user);
+  }
+
+  saveToken(token: string): void {
+    localStorage.setItem('authToken', token);
+  }
+
+  getToken(): string | null {
+    return localStorage.getItem('authToken');
+  }
+
+  isAuthenticated(): boolean {
+    return !!this.getToken();
+  }
+
+  logout(): void {
+    localStorage.removeItem('authToken');
+  }
+}
+
+2. Ensure HttpClientModule is Imported
+
+In a standalone Angular application, the HttpClientModule needs to be imported directly in any standalone component where HTTP requests are required.
+
+3. Login Component
+
+For your login functionality, the component will look like this:
+
+login.component.ts:
+
+import { Component } from '@angular/core';
+import { AuthenticationService } from '../../services/authentication.service';
+import { Router } from '@angular/router';
+import { provideHttpClient, HttpClient } from '@angular/common/http';
+
+@Component({
+  selector: 'app-login',
+  standalone: true,
+  imports: [provideHttpClient()],
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css'],
+})
+export class LoginComponent {
+  email = '';
+  password = '';
+
+  constructor(private authService: AuthenticationService, private router: Router) {}
+
+  onLogin(): void {
+    this.authService.login(this.email, this.password).subscribe(
+      (response) => {
+        this.authService.saveToken(response.token);
+        this.router.navigate(['/']);
+      },
+      (error) => {
+        console.error('Login failed', error);
+      }
+    );
+  }
+}
+
+4. Register Component
+
+The registration component works similarly:
+
+register.component.ts:
+
+import { Component } from '@angular/core';
+import { AuthenticationService } from '../../services/authentication.service';
+import { Router } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+
+@Component({
+  selector: 'app-register',
+  standalone: true,
+  imports: [provideHttpClient()],
+  templateUrl: './register.component.html',
+  styleUrls: ['./register.component.css'],
+})
+export class RegisterComponent {
+  user = {
+    name: '',
+    email: '',
+    password: '',
+  };
+
+  constructor(private authService: AuthenticationService, private router: Router) {}
+
+  onRegister(): void {
+    this.authService.register(this.user).subscribe(
+      (response) => {
+        console.log('Registration successful');
+        this.router.navigate(['/login']);
+      },
+      (error) => {
+        console.error('Registration failed', error);
+      }
+    );
+  }
+}
+
+5. Application Routing
+
+In Angular without app.module.ts, you need to define the routes using the standalone component API:
+
+main.ts:
+
+import { bootstrapApplication } from '@angular/platform-browser';
+import { provideRouter, Routes } from '@angular/router';
+import { importProvidersFrom } from '@angular/core';
+
+import { HomeComponent } from './app/components/home/home.component';
+import { LoginComponent } from './app/components/login/login.component';
+import { RegisterComponent } from './app/components/register/register.component';
+
+const routes: Routes = [
+  { path: '', component: HomeComponent },
+  { path: 'login', component: LoginComponent },
+  { path: 'register', component: RegisterComponent },
+];
+
+bootstrapApplication(HomeComponent, {
+  providers: [
+    provideRouter(routes),
+    importProvidersFrom(HttpClientModule), // Enable HttpClient globally
+  ],
+});
+
+6. Folder Structure
+
+For clarity, your project folder structure might look like this:
+
+src/
+├── app/
+│   ├── components/
+│   │   ├── home/
+│   │   ├── login/
+│   │   ├── register/
+│   ├── services/
+│   │   ├── authentication.service.ts
+├── main.ts
+
+Key Notes
+	•	Since you don’t have app.module.ts, you’re using standalone components and direct bootstrapping (bootstrapApplication in main.ts).
+	•	The service (AuthenticationService) is injected directly into components where needed.
+	•	Ensure HttpClientModule is provided either globally or in each component where HTTP calls are made.
+
+Let me know if you need further assistance with Angular Standalone Components or integrating with your backend!
