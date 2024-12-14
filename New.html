@@ -1014,3 +1014,279 @@ export class UserDashboardComponent implements OnInit {
 }
 
 This BookingService will help streamline booking-related operations. Let me know if you need further assistance!
+
+
+
+
+Here’s how you can implement authentication in your Angular-based Airline Management System. The system will include:
+	1.	Login Page for both Admin and User.
+	2.	Auth Guards to restrict access based on roles.
+	3.	JWT-based token management for secure communication with the backend.
+
+1. Backend Preparation
+
+Ensure your backend has the following endpoints for authentication:
+	•	/auth/login for generating a JWT token.
+	•	/auth/validate for validating a token.
+
+These endpoints should return the JWT token, user role (admin or user), and user details upon successful login.
+
+2. Authentication Workflow
+	•	Login Component: Handles user input and communicates with the backend to authenticate users.
+	•	AuthService: Manages token storage and validation.
+	•	AuthGuard: Protects routes based on roles.
+
+3. Code Implementation
+
+3.1 AuthService
+
+auth.service.ts
+
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { tap } from 'rxjs/operators';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class AuthService {
+  private apiUrl = 'http://localhost:8080/auth';
+  private isLoggedInSubject = new BehaviorSubject<boolean>(this.hasToken());
+
+  constructor(private http: HttpClient, private router: Router) {}
+
+  login(credentials: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/login`, credentials).pipe(
+      tap((response: any) => {
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('role', response.role);
+        this.isLoggedInSubject.next(true);
+      })
+    );
+  }
+
+  logout(): void {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    this.isLoggedInSubject.next(false);
+    this.router.navigate(['/login']);
+  }
+
+  isLoggedIn(): Observable<boolean> {
+    return this.isLoggedInSubject.asObservable();
+  }
+
+  getToken(): string | null {
+    return localStorage.getItem('token');
+  }
+
+  getRole(): string | null {
+    return localStorage.getItem('role');
+  }
+
+  hasToken(): boolean {
+    return !!localStorage.getItem('token');
+  }
+}
+
+3.2 Auth Guard
+
+auth.guard.ts
+
+import { Injectable } from '@angular/core';
+import {
+  CanActivate,
+  ActivatedRouteSnapshot,
+  RouterStateSnapshot,
+  Router,
+} from '@angular/router';
+import { AuthService } from '../services/auth.service';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class AuthGuard implements CanActivate {
+  constructor(private authService: AuthService, private router: Router) {}
+
+  canActivate(
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+  ): boolean {
+    const token = this.authService.getToken();
+    const role = this.authService.getRole();
+    const requiredRole = route.data['role'];
+
+    if (!token || (requiredRole && role !== requiredRole)) {
+      this.router.navigate(['/login']);
+      return false;
+    }
+
+    return true;
+  }
+}
+
+3.3 Login Component
+
+login.component.ts
+
+import { Component } from '@angular/core';
+import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
+
+@Component({
+  selector: 'app-login',
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css'],
+})
+export class LoginComponent {
+  credentials = { username: '', password: '' };
+
+  constructor(private authService: AuthService, private router: Router) {}
+
+  onSubmit() {
+    this.authService.login(this.credentials).subscribe({
+      next: (response) => {
+        const role = response.role;
+        if (role === 'admin') {
+          this.router.navigate(['/admin/dashboard']);
+        } else if (role === 'user') {
+          this.router.navigate(['/user/dashboard']);
+        }
+      },
+      error: () => alert('Invalid credentials!'),
+    });
+  }
+}
+
+login.component.html
+
+<mat-card>
+  <h1>Login</h1>
+  <form>
+    <mat-form-field>
+      <mat-label>Username</mat-label>
+      <input matInput [(ngModel)]="credentials.username" name="username" />
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Password</mat-label>
+      <input matInput type="password" [(ngModel)]="credentials.password" name="password" />
+    </mat-form-field>
+    <button mat-raised-button color="primary" (click)="onSubmit()">Login</button>
+  </form>
+</mat-card>
+
+3.4 Protecting Routes
+
+Update the app-routing.module.ts to secure routes with the AuthGuard.
+
+app-routing.module.ts
+
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { LoginComponent } from './components/login/login.component';
+import { AddFlightComponent } from './components/admin/add-flight/add-flight.component';
+import { SearchFlightComponent } from './components/user/search-flight/search-flight.component';
+import { AuthGuard } from './guards/auth.guard';
+
+const routes: Routes = [
+  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  { path: 'login', component: LoginComponent },
+  {
+    path: 'admin/dashboard',
+    component: AddFlightComponent,
+    canActivate: [AuthGuard],
+    data: { role: 'admin' },
+  },
+  {
+    path: 'user/dashboard',
+    component: SearchFlightComponent,
+    canActivate: [AuthGuard],
+    data: { role: 'user' },
+  },
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule],
+})
+export class AppRoutingModule {}
+
+3.5 Navbar Updates for Logout
+
+Update the Navbar to display different options for Admin/User and include a Logout option.
+
+navbar.component.ts
+
+import { Component } from '@angular/core';
+import { AuthService } from '../../services/auth.service';
+
+@Component({
+  selector: 'app-navbar',
+  templateUrl: './navbar.component.html',
+  styleUrls: ['./navbar.component.css'],
+})
+export class NavbarComponent {
+  constructor(private authService: AuthService) {}
+
+  logout() {
+    this.authService.logout();
+  }
+
+  isAdmin(): boolean {
+    return this.authService.getRole() === 'admin';
+  }
+
+  isUser(): boolean {
+    return this.authService.getRole() === 'user';
+  }
+}
+
+navbar.component.html
+
+<mat-toolbar color="primary">
+  <span>Airline Management System</span>
+  <span class="spacer"></span>
+  <button mat-button *ngIf="isAdmin()" routerLink="/admin/dashboard">Admin Dashboard</button>
+  <button mat-button *ngIf="isUser()" routerLink="/user/dashboard">User Dashboard</button>
+  <button mat-button (click)="logout()">Logout</button>
+</mat-toolbar>
+
+4. Token Interceptor for API Requests
+
+Add an HTTP interceptor to include the token in every request.
+
+token.interceptor.ts
+
+import { Injectable } from '@angular/core';
+import { HttpInterceptor, HttpRequest, HttpHandler } from '@angular/common/http';
+import { AuthService } from '../services/auth.service';
+
+@Injectable()
+export class TokenInterceptor implements HttpInterceptor {
+  constructor(private authService: AuthService) {}
+
+  intercept(req: HttpRequest<any>, next: HttpHandler) {
+    const token = this.authService.getToken();
+    if (token) {
+      req = req.clone({
+        setHeaders: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    }
+    return next.handle(req);
+  }
+}
+
+Add it to the providers in app.module.ts:
+
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { TokenInterceptor } from './interceptors/token.interceptor';
+
+providers: [
+  { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true },
+],
+
+This implementation provides a secure and role-based authentication system integrated with your backend. Let me know if you’d like to refine or expand it further!
