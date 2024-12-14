@@ -342,3 +342,234 @@ search-flight.component.html
 </mat-card>
 
 Would you like to continue with remaining components, services, or shared elements (like Navbar/Footer)? Let me know!
+
+
+
+
+
+3. Remaining Components
+
+2.2 BookFlightComponent
+
+book-flight.component.ts
+
+import { Component } from '@angular/core';
+import { BookingService } from '../../services/booking.service';
+import { ActivatedRoute } from '@angular/router';
+
+@Component({
+  selector: 'app-book-flight',
+  templateUrl: './book-flight.component.html',
+  styleUrls: ['./book-flight.component.css']
+})
+export class BookFlightComponent {
+  flightId: string | null = null;
+  passengerDetails = { name: '', age: '' };
+
+  constructor(
+    private bookingService: BookingService,
+    private route: ActivatedRoute
+  ) {
+    this.flightId = this.route.snapshot.paramMap.get('id');
+  }
+
+  onBook() {
+    if (this.flightId) {
+      const bookingData = { ...this.passengerDetails, flightId: this.flightId };
+      this.bookingService.bookFlight(bookingData).subscribe({
+        next: () => alert('Flight booked successfully!'),
+        error: () => alert('Failed to book flight'),
+      });
+    }
+  }
+}
+
+book-flight.component.html
+
+<mat-card>
+  <h1>Book Flight</h1>
+  <div *ngIf="flightId">
+    <p>Flight ID: {{ flightId }}</p>
+    <mat-form-field>
+      <mat-label>Passenger Name</mat-label>
+      <input matInput [(ngModel)]="passengerDetails.name" name="name" />
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Passenger Age</mat-label>
+      <input matInput type="number" [(ngModel)]="passengerDetails.age" name="age" />
+    </mat-form-field>
+    <button mat-raised-button color="primary" (click)="onBook()">Book Flight</button>
+  </div>
+</mat-card>
+
+2.3 ViewBookingsComponent (User)
+
+view-bookings.component.ts
+
+import { Component, OnInit } from '@angular/core';
+import { BookingService } from '../../services/booking.service';
+
+@Component({
+  selector: 'app-view-bookings',
+  templateUrl: './view-bookings.component.html',
+  styleUrls: ['./view-bookings.component.css']
+})
+export class ViewBookingsComponent implements OnInit {
+  userBookings: any[] = [];
+
+  constructor(private bookingService: BookingService) {}
+
+  ngOnInit() {
+    this.bookingService.getUserBookings().subscribe({
+      next: (data) => (this.userBookings = data),
+      error: () => alert('Failed to fetch bookings'),
+    });
+  }
+}
+
+view-bookings.component.html
+
+<mat-card>
+  <h1>Your Bookings</h1>
+  <table mat-table [dataSource]="userBookings" class="mat-elevation-z8">
+    <ng-container matColumnDef="id">
+      <th mat-header-cell *matHeaderCellDef> ID </th>
+      <td mat-cell *matCellDef="let booking"> {{ booking.id }} </td>
+    </ng-container>
+    <ng-container matColumnDef="flightId">
+      <th mat-header-cell *matHeaderCellDef> Flight ID </th>
+      <td mat-cell *matCellDef="let booking"> {{ booking.flightId }} </td>
+    </ng-container>
+    <ng-container matColumnDef="passengerName">
+      <th mat-header-cell *matHeaderCellDef> Passenger Name </th>
+      <td mat-cell *matCellDef="let booking"> {{ booking.passengerName }} </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="['id', 'flightId', 'passengerName']"></tr>
+    <tr mat-row *matRowDef="let row; columns: ['id', 'flightId', 'passengerName'];"></tr>
+  </table>
+</mat-card>
+
+4. Shared Components
+
+4.1 NavbarComponent
+
+navbar.component.ts
+
+import { Component } from '@angular/core';
+import { Router } from '@angular/router';
+
+@Component({
+  selector: 'app-navbar',
+  templateUrl: './navbar.component.html',
+  styleUrls: ['./navbar.component.css']
+})
+export class NavbarComponent {
+  constructor(private router: Router) {}
+
+  navigateTo(destination: string) {
+    this.router.navigate([destination]);
+  }
+}
+
+navbar.component.html
+
+<mat-toolbar color="primary">
+  <span>Airline Management System</span>
+  <span class="spacer"></span>
+  <button mat-button (click)="navigateTo('/admin')">Admin</button>
+  <button mat-button (click)="navigateTo('/user')">User</button>
+</mat-toolbar>
+
+navbar.component.css
+
+.spacer {
+  flex: 1;
+}
+
+4.2 FooterComponent
+
+footer.component.ts
+
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-footer',
+  templateUrl: './footer.component.html',
+  styleUrls: ['./footer.component.css']
+})
+export class FooterComponent {}
+
+footer.component.html
+
+<mat-toolbar color="primary">
+  <span class="footer-text">© 2024 Airline Management System</span>
+</mat-toolbar>
+
+footer.component.css
+
+.footer-text {
+  text-align: center;
+  width: 100%;
+}
+
+5. Services
+
+5.1 FlightService
+
+flight.service.ts
+
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class FlightService {
+  private apiUrl = 'http://localhost:8080/flights';
+
+  constructor(private http: HttpClient) {}
+
+  addFlight(flight: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/add`, flight);
+  }
+
+  searchFlights(criteria: any): Observable<any[]> {
+    return this.http.post<any[]>(`${this.apiUrl}/search`, criteria);
+  }
+}
+
+5.2 BookingService
+
+booking.service.ts
+
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class BookingService {
+  private apiUrl = 'http://localhost:8080/bookings';
+
+  constructor(private http: HttpClient) {}
+
+  bookFlight(booking: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/book`, booking);
+  }
+
+  getAllBookings(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/all`);
+  }
+
+  getUserBookings(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/user`);
+  }
+}
+
+5.3 AuthService (Optional)
+
+You can extend this for authentication functionality.
+
+Let me know if you’d like additional details or help with backend API integrations!
