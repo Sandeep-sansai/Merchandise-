@@ -573,3 +573,233 @@ export class BookingService {
 You can extend this for authentication functionality.
 
 Let me know if you’d like additional details or help with backend API integrations!
+
+
+
+Here’s the code for the Admin Dashboard and User Dashboard components:
+
+1. Admin Dashboard
+
+The Admin Dashboard includes options to manage flights (add, delete, view bookings, etc.).
+
+admin-dashboard.component.ts
+
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { FlightService } from '../../services/flight.service';
+
+@Component({
+  selector: 'app-admin-dashboard',
+  templateUrl: './admin-dashboard.component.html',
+  styleUrls: ['./admin-dashboard.component.css'],
+})
+export class AdminDashboardComponent implements OnInit {
+  flights: any[] = [];
+  bookings: any[] = [];
+
+  constructor(private flightService: FlightService, private router: Router) {}
+
+  ngOnInit(): void {
+    this.loadFlights();
+  }
+
+  loadFlights() {
+    this.flightService.getFlights().subscribe({
+      next: (response) => (this.flights = response),
+      error: (err) => console.error('Error loading flights:', err),
+    });
+  }
+
+  deleteFlight(id: number) {
+    if (confirm('Are you sure you want to delete this flight?')) {
+      this.flightService.deleteFlight(id).subscribe({
+        next: () => {
+          alert('Flight deleted successfully.');
+          this.loadFlights();
+        },
+        error: (err) => console.error('Error deleting flight:', err),
+      });
+    }
+  }
+
+  viewAllBookings() {
+    this.flightService.getAllBookings().subscribe({
+      next: (response) => (this.bookings = response),
+      error: (err) => console.error('Error loading bookings:', err),
+    });
+  }
+}
+
+admin-dashboard.component.html
+
+<div class="container">
+  <h1>Admin Dashboard</h1>
+
+  <h2>Flight Management</h2>
+  <button mat-raised-button color="primary" routerLink="/admin/add-flight">Add Flight</button>
+
+  <table mat-table [dataSource]="flights" class="mat-elevation-z8">
+    <ng-container matColumnDef="id">
+      <th mat-header-cell *matHeaderCellDef>ID</th>
+      <td mat-cell *matCellDef="let flight">{{ flight.id }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="source">
+      <th mat-header-cell *matHeaderCellDef>Source</th>
+      <td mat-cell *matCellDef="let flight">{{ flight.source }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="destination">
+      <th mat-header-cell *matHeaderCellDef>Destination</th>
+      <td mat-cell *matCellDef="let flight">{{ flight.destination }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let flight">
+        <button mat-button color="warn" (click)="deleteFlight(flight.id)">Delete</button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="['id', 'source', 'destination', 'actions']"></tr>
+    <tr mat-row *matRowDef="let row; columns: ['id', 'source', 'destination', 'actions']"></tr>
+  </table>
+
+  <h2>Bookings</h2>
+  <button mat-raised-button color="accent" (click)="viewAllBookings()">View All Bookings</button>
+
+  <div *ngIf="bookings.length > 0">
+    <table mat-table [dataSource]="bookings" class="mat-elevation-z8">
+      <ng-container matColumnDef="bookingId">
+        <th mat-header-cell *matHeaderCellDef>Booking ID</th>
+        <td mat-cell *matCellDef="let booking">{{ booking.id }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="passengerName">
+        <th mat-header-cell *matHeaderCellDef>Passenger</th>
+        <td mat-cell *matCellDef="let booking">{{ booking.passengerName }}</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="['bookingId', 'passengerName']"></tr>
+      <tr mat-row *matRowDef="let row; columns: ['bookingId', 'passengerName']"></tr>
+    </table>
+  </div>
+</div>
+
+2. User Dashboard
+
+The User Dashboard lets users search for flights and view their bookings.
+
+user-dashboard.component.ts
+
+import { Component, OnInit } from '@angular/core';
+import { FlightService } from '../../services/flight.service';
+
+@Component({
+  selector: 'app-user-dashboard',
+  templateUrl: './user-dashboard.component.html',
+  styleUrls: ['./user-dashboard.component.css'],
+})
+export class UserDashboardComponent implements OnInit {
+  flights: any[] = [];
+  bookings: any[] = [];
+  searchCriteria = { source: '', destination: '', date: '' };
+
+  constructor(private flightService: FlightService) {}
+
+  ngOnInit(): void {
+    this.loadUserBookings();
+  }
+
+  searchFlights() {
+    this.flightService.searchFlights(this.searchCriteria).subscribe({
+      next: (response) => (this.flights = response),
+      error: (err) => console.error('Error searching flights:', err),
+    });
+  }
+
+  loadUserBookings() {
+    this.flightService.getUserBookings().subscribe({
+      next: (response) => (this.bookings = response),
+      error: (err) => console.error('Error loading bookings:', err),
+    });
+  }
+}
+
+user-dashboard.component.html
+
+<div class="container">
+  <h1>User Dashboard</h1>
+
+  <h2>Search Flights</h2>
+  <form>
+    <mat-form-field>
+      <mat-label>Source</mat-label>
+      <input matInput [(ngModel)]="searchCriteria.source" name="source" />
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Destination</mat-label>
+      <input matInput [(ngModel)]="searchCriteria.destination" name="destination" />
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Date</mat-label>
+      <input matInput type="date" [(ngModel)]="searchCriteria.date" name="date" />
+    </mat-form-field>
+    <button mat-raised-button color="primary" (click)="searchFlights()">Search</button>
+  </form>
+
+  <h3>Available Flights</h3>
+  <table mat-table [dataSource]="flights" class="mat-elevation-z8">
+    <ng-container matColumnDef="id">
+      <th mat-header-cell *matHeaderCellDef>ID</th>
+      <td mat-cell *matCellDef="let flight">{{ flight.id }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="source">
+      <th mat-header-cell *matHeaderCellDef>Source</th>
+      <td mat-cell *matCellDef="let flight">{{ flight.source }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="destination">
+      <th mat-header-cell *matHeaderCellDef>Destination</th>
+      <td mat-cell *matCellDef="let flight">{{ flight.destination }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="date">
+      <th mat-header-cell *matHeaderCellDef>Date</th>
+      <td mat-cell *matCellDef="let flight">{{ flight.date }}</td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="['id', 'source', 'destination', 'date']"></tr>
+    <tr mat-row *matRowDef="let row; columns: ['id', 'source', 'destination', 'date']"></tr>
+  </table>
+
+  <h2>Your Bookings</h2>
+  <table mat-table [dataSource]="bookings" class="mat-elevation-z8">
+    <ng-container matColumnDef="bookingId">
+      <th mat-header-cell *matHeaderCellDef>Booking ID</th>
+      <td mat-cell *matCellDef="let booking">{{ booking.id }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="flightDetails">
+      <th mat-header-cell *matHeaderCellDef>Flight</th>
+      <td mat-cell *matCellDef="let booking">{{ booking.flightDetails }}</td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="['bookingId', 'flightDetails']"></tr>
+    <tr mat-row *matRowDef="let row; columns: ['bookingId', 'flightDetails']"></tr>
+  </table>
+</div>
+
+Explanation
+	1.	Admin Dashboard
+	•	Displays all flights with options to delete flights.
+	•	A button to fetch and view all user bookings.
+	2.	User Dashboard
+	•	Includes a form to search flights based on source, destination, and date.
+	•	Displays available flights after search.
+	•	Lists the user’s current bookings.
+	3.	Reusable Services
+Ensure FlightService includes methods like getFlights(), deleteFlight(id), getAllBookings(), searchFlights(criteria), and getUserBookings().
+
+Let me know if you need help implementing the FlightService!
