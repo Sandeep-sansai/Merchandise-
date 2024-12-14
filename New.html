@@ -164,3 +164,181 @@ const routes: Routes = [
 export class AppRoutingModule {}
 
 Let me know which specific components you’d like to see the implementation for (e.g., search-flight.component.ts or add-flight.component.ts), and I’ll provide the complete code!
+
+
+
+Below is the complete implementation for every component, service, and file required for the Angular-based airline management system.
+
+1. Admin Components
+
+1.1 AddFlightComponent
+
+add-flight.component.ts
+
+import { Component } from '@angular/core';
+import { FlightService } from '../../services/flight.service';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+
+@Component({
+  selector: 'app-add-flight',
+  templateUrl: './add-flight.component.html',
+  styleUrls: ['./add-flight.component.css']
+})
+export class AddFlightComponent {
+  addFlightForm: FormGroup;
+
+  constructor(private fb: FormBuilder, private flightService: FlightService) {
+    this.addFlightForm = this.fb.group({
+      source: ['', Validators.required],
+      destination: ['', Validators.required],
+      date: ['', Validators.required],
+      time: ['', Validators.required],
+      seats: ['', [Validators.required, Validators.min(1)]],
+    });
+  }
+
+  onSubmit() {
+    if (this.addFlightForm.valid) {
+      this.flightService.addFlight(this.addFlightForm.value).subscribe({
+        next: () => alert('Flight added successfully!'),
+        error: () => alert('Failed to add flight'),
+      });
+    }
+  }
+}
+
+add-flight.component.html
+
+<mat-card>
+  <h1>Add Flight</h1>
+  <form [formGroup]="addFlightForm" (ngSubmit)="onSubmit()">
+    <mat-form-field>
+      <mat-label>Source</mat-label>
+      <input matInput formControlName="source" />
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Destination</mat-label>
+      <input matInput formControlName="destination" />
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Date</mat-label>
+      <input matInput type="date" formControlName="date" />
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Time</mat-label>
+      <input matInput type="time" formControlName="time" />
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Seats</mat-label>
+      <input matInput type="number" formControlName="seats" />
+    </mat-form-field>
+    <button mat-raised-button color="primary" type="submit">Add Flight</button>
+  </form>
+</mat-card>
+
+1.2 ViewBookingsComponent (Admin)
+
+view-bookings.component.ts
+
+import { Component, OnInit } from '@angular/core';
+import { BookingService } from '../../services/booking.service';
+
+@Component({
+  selector: 'app-view-bookings',
+  templateUrl: './view-bookings.component.html',
+  styleUrls: ['./view-bookings.component.css']
+})
+export class ViewBookingsComponent implements OnInit {
+  bookings: any[] = [];
+
+  constructor(private bookingService: BookingService) {}
+
+  ngOnInit() {
+    this.bookingService.getAllBookings().subscribe({
+      next: (data) => (this.bookings = data),
+      error: () => alert('Failed to fetch bookings'),
+    });
+  }
+}
+
+view-bookings.component.html
+
+<mat-card>
+  <h1>All Bookings</h1>
+  <table mat-table [dataSource]="bookings" class="mat-elevation-z8">
+    <ng-container matColumnDef="id">
+      <th mat-header-cell *matHeaderCellDef> ID </th>
+      <td mat-cell *matCellDef="let booking"> {{ booking.id }} </td>
+    </ng-container>
+    <ng-container matColumnDef="passengerName">
+      <th mat-header-cell *matHeaderCellDef> Passenger Name </th>
+      <td mat-cell *matCellDef="let booking"> {{ booking.passengerName }} </td>
+    </ng-container>
+    <ng-container matColumnDef="flightId">
+      <th mat-header-cell *matHeaderCellDef> Flight ID </th>
+      <td mat-cell *matCellDef="let booking"> {{ booking.flightId }} </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="['id', 'passengerName', 'flightId']"></tr>
+    <tr mat-row *matRowDef="let row; columns: ['id', 'passengerName', 'flightId'];"></tr>
+  </table>
+</mat-card>
+
+2. User Components
+
+2.1 SearchFlightComponent
+
+search-flight.component.ts
+
+import { Component } from '@angular/core';
+import { FlightService } from '../../services/flight.service';
+
+@Component({
+  selector: 'app-search-flight',
+  templateUrl: './search-flight.component.html',
+  styleUrls: ['./search-flight.component.css']
+})
+export class SearchFlightComponent {
+  flights: any[] = [];
+  searchCriteria = { source: '', destination: '', date: '' };
+
+  constructor(private flightService: FlightService) {}
+
+  onSearch() {
+    this.flightService.searchFlights(this.searchCriteria).subscribe({
+      next: (data) => (this.flights = data),
+      error: () => alert('Failed to fetch flights'),
+    });
+  }
+}
+
+search-flight.component.html
+
+<mat-card>
+  <h1>Search Flights</h1>
+  <form>
+    <mat-form-field>
+      <mat-label>Source</mat-label>
+      <input matInput [(ngModel)]="searchCriteria.source" name="source" />
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Destination</mat-label>
+      <input matInput [(ngModel)]="searchCriteria.destination" name="destination" />
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Date</mat-label>
+      <input matInput type="date" [(ngModel)]="searchCriteria.date" name="date" />
+    </mat-form-field>
+    <button mat-raised-button color="primary" type="button" (click)="onSearch()">Search</button>
+  </form>
+
+  <div *ngIf="flights.length > 0">
+    <h2>Available Flights</h2>
+    <ul>
+      <li *ngFor="let flight of flights">
+        Flight {{ flight.id }}: {{ flight.source }} → {{ flight.destination }} at {{ flight.time }}
+      </li>
+    </ul>
+  </div>
+</mat-card>
+
+Would you like to continue with remaining components, services, or shared elements (like Navbar/Footer)? Let me know!
