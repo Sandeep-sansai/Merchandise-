@@ -1,826 +1,231 @@
-Below is the structure and code for a complete Angular 15 front-end application with a Spring Boot backend that includes JWT-based authentication. The code integrates login, registration, and a home page with a navbar, footer, and a slideshow hero section.
+To meet your requirements, I will refactor and adjust the application to ensure the registration flow and booking flow work as per the data collection requirements you specified. The following updates will be applied across all layers:
 
-1. Angular Frontend Setup
+1. Registration Flow
 
-1.1 Install Angular CLI
+Updated Requirements
 
-npm install -g @angular/cli
-ng new airline-management-frontend
-cd airline-management-frontend
+During user registration:
+	•	Data collected from the frontend includes: name, age, gmail, username, password, and confirmPassword.
+	•	This data should:
+	•	Be captured via a DTO (Data Transfer Object) for validation.
+	•	Passed to the service layer for processing (including saving to the database via the DAO layer).
 
-1.2 Install Dependencies
+Updated Layers
 
-npm install bootstrap @auth0/angular-jwt
+DTO for Registration
 
-1.3 Add Bootstrap to angular.json
+// DTO for Registration
+public class RegistrationDTO {
+    private String name;
+    private int age;
+    private String gmail;
+    private String username;
+    private String password;
+    private String confirmPassword;
 
-"styles": [
-  "src/styles.css",
-  "node_modules/bootstrap/dist/css/bootstrap.min.css"
-],
-"scripts": [
-  "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
-]
-
-2. Project Structure
-	•	Components:
-	•	navbar: Header with Login, Register, and About Us.
-	•	footer: Footer with quick links.
-	•	home: Slideshow hero section with offers and reviews.
-	•	login: Login page.
-	•	register: Registration page.
-
-3. Component Code
-
-3.1 Navbar Component
-
-ng generate component components/navbar
-
-src/app/components/navbar/navbar.component.html
-
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-  <a class="navbar-brand" href="#">Airline Management</a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  <div class="collapse navbar-collapse" id="navbarNav">
-    <ul class="navbar-nav ml-auto">
-      <li class="nav-item">
-        <a class="nav-link" routerLink="/login">Login</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" routerLink="/register">Register</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" routerLink="/about-us">About Us</a>
-      </li>
-    </ul>
-  </div>
-</nav>
-
-3.2 Footer Component
-
-ng generate component components/footer
-
-src/app/components/footer/footer.component.html
-
-<footer class="bg-dark text-white text-center py-4">
-  <div class="container">
-    <div class="row">
-      <div class="col-md-4">
-        <h5>Quick Links</h5>
-        <ul class="list-unstyled">
-          <li><a href="#" class="text-white">Contact Us</a></li>
-          <li><a href="#" class="text-white">Privacy Policy</a></li>
-        </ul>
-      </div>
-      <div class="col-md-4">
-        <h5>Follow Us</h5>
-        <a href="#" class="text-white mr-2">Facebook</a>
-        <a href="#" class="text-white">Twitter</a>
-      </div>
-      <div class="col-md-4">
-        <h5>About Airline</h5>
-        <p>Connecting the world with the best flying experience!</p>
-      </div>
-    </div>
-  </div>
-</footer>
-
-3.3 Home Component
-
-ng generate component components/home
-
-src/app/components/home/home.component.html
-
-<div id="heroCarousel" class="carousel slide" data-ride="carousel">
-  <div class="carousel-inner">
-    <div class="carousel-item active">
-      <img src="assets/images/reviews.jpg" class="d-block w-100" alt="Customer Reviews">
-      <div class="carousel-caption">
-        <h5>What Our Customers Say</h5>
-        <p>Experience unmatched service quality and comfort.</p>
-      </div>
-    </div>
-    <div class="carousel-item">
-      <img src="assets/images/offer.jpg" class="d-block w-100" alt="Festival Offers">
-      <div class="carousel-caption">
-        <h5>Festival Offers</h5>
-        <p>Book your flight now to avail amazing discounts.</p>
-      </div>
-    </div>
-    <div class="carousel-item">
-      <img src="assets/images/flight.jpg" class="d-block w-100" alt="Luxury Flights">
-      <div class="carousel-caption">
-        <h5>Fly with Luxury</h5>
-        <p>Redefining the joy of flying!</p>
-      </div>
-    </div>
-  </div>
-  <a class="carousel-control-prev" href="#heroCarousel" role="button" data-slide="prev">
-    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-    <span class="sr-only">Previous</span>
-  </a>
-  <a class="carousel-control-next" href="#heroCarousel" role="button" data-slide="next">
-    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-    <span class="sr-only">Next</span>
-  </a>
-</div>
-
-3.4 Login Component
-
-ng generate component components/login
-
-src/app/components/login/login.component.html
-
-<div class="container mt-5">
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Login</h5>
-          <form (submit)="login()">
-            <div class="form-group">
-              <label for="email">Email</label>
-              <input type="email" class="form-control" [(ngModel)]="email" name="email" required>
-            </div>
-            <div class="form-group">
-              <label for="password">Password</label>
-              <input type="password" class="form-control" [(ngModel)]="password" name="password" required>
-            </div>
-            <button type="submit" class="btn btn-primary btn-block">Login</button>
-          </form>
-          <p class="mt-3">
-            Don't have an account? <a routerLink="/register">Register here</a>.
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-src/app/components/login/login.component.ts
-
-import { Component } from '@angular/core';
-import { AuthService } from 'src/app/services/auth.service';
-
-@Component({
-  selector: 'app-login',
-  templateUrl: './login.component.html',
-})
-export class LoginComponent {
-  email: string = '';
-  password: string = '';
-
-  constructor(private authService: AuthService) {}
-
-  login() {
-    this.authService.login(this.email, this.password).subscribe(
-      (response) => {
-        alert('Login successful');
-      },
-      (error) => {
-        alert('Invalid credentials');
-      }
-    );
-  }
+    // Getters and Setters
 }
 
-3.5 Register Component
+Controller for Registration
 
-ng generate component components/register
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+    @Autowired
+    private UserService userService;
 
-src/app/components/register/register.component.html
-
-<div class="container mt-5">
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Register</h5>
-          <form (submit)="register()">
-            <div class="form-group">
-              <label for="name">Name</label>
-              <input type="text" class="form-control" [(ngModel)]="name" name="name" required>
-            </div>
-            <div class="form-group">
-              <label for="email">Email</label>
-              <input type="email" class="form-control" [(ngModel)]="email" name="email" required>
-            </div>
-            <div class="form-group">
-              <label for="password">Password</label>
-              <input type="password" class="form-control" [(ngModel)]="password" name="password" required>
-            </div>
-            <button type="submit" class="btn btn-primary btn-block">Register</button>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-src/app/components/register/register.component.ts
-
-import { Component } from '@angular/core';
-import { AuthService } from 'src/app/services/auth.service';
-
-@Component({
-  selector: 'app-register',
-  templateUrl: './register.component.html',
-})
-export class RegisterComponent {
-  name: string = '';
-  email: string = '';
-  password: string = '';
-
-  constructor(private authService: AuthService) {}
-
-  register() {
-    const user = { name: this.name, email: this.email, password: this.password };
-    this.authService.register(user).subscribe(
-      (response) => {
-        alert('Registration successful');
-      },
-      (error) => {
-        alert('Registration failed');
-      }
-    );
-  }
+    // Registration Endpoint
+    @PostMapping("/register")
+    public ResponseEntity<String> registerUser(@RequestBody RegistrationDTO registrationDTO) {
+        try {
+            userService.registerUser(registrationDTO);
+            return ResponseEntity.ok("Registration successful!");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
 
-4. Authentication Service
+Service Layer for Registration
 
-src/app/services/auth.service.ts
+@Service
+public class UserService {
+    @Autowired
+    private UserRepository userRepository;
 
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+    @Autowired
+    private CredentialsRepository credentialsRepository;
 
-@Injectable({
-  providedIn: 'root',
-})
-export class AuthService {
-  private baseUrl = 'http://localhost:8080/api/auth';
+    public void registerUser(RegistrationDTO registrationDTO) {
+        // Validate Passwords
+        if (!registrationDTO.getPassword().equals(registrationDTO.getConfirmPassword())) {
+            throw new IllegalArgumentException("Passwords do not match!");
+        }
 
-  constructor(private http: HttpClient) {}
+        // Save Credentials
+        CredentialsEntity credentials = new CredentialsEntity();
+        credentials.setUsername(registrationDTO.getUsername());
+        credentials.setPassword(registrationDTO.getPassword());
 
-  login(email: string, password: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/login`, { email, password });
-  }
+        CredentialsEntity savedCredentials = credentialsRepository.save(credentials);
 
-  register(user: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/register`, user);
-  }
+        // Save User
+        UserEntity user = new UserEntity();
+        user.setName(registrationDTO.getName());
+        user.setAge(registrationDTO.getAge());
+        user.setGmail(registrationDTO.getGmail());
+        user.setCredentials(savedCredentials);
+
+        userRepository.save(user);
+    }
 }
 
-5. Add Routing
+Updated User Entity
 
-src/app/app-routing.module.ts
+@Entity
+@Table(name = "users")
+public class UserEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
-import { HomeComponent } from './components/home/home.component';
-import { LoginComponent } from './components/login/login.component';
-import { RegisterComponent } from './components/register/register.component';
+    private String name;
+    private int age;
+    private String gmail;
 
-const routes: Routes = [
-  { path: '', component: HomeComponent },
-  { path: 'login', component: LoginComponent },
-  { path: 'register', component: RegisterComponent },
-];
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "credentials_id", referencedColumnName = "id")
+    private CredentialsEntity credentials;
 
-@NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule],
-})
-export class AppRoutingModule {}
-
-6. Connect to Spring Security Backend
-	•	The login and registration APIs will integrate with the Spring Security backend configured for JWT tokens.
-
-JWT Authorization Header:
-	•	Ensure every authenticated request includes:
-
-headers: { Authorization: `Bearer ${token}` }
-
-This completes the Angular Frontend with login, registration, and a dynamic hero section integrated with the Spring Boot backend.
-
-
-
-The Authentication Service should be written in the Angular frontend within a service file. Angular services are used to handle shared logic, API calls, and application-level data across components. Here’s a step-by-step guide on where and how to create and use the authentication service:
-
-1. Generate the Service File
-
-You can create the service file using Angular CLI or manually:
-
-Using Angular CLI:
-
-Run the following command in your terminal:
-
-ng generate service services/authentication
-
-This will create two files:
-	•	src/app/services/authentication.service.ts
-	•	src/app/services/authentication.service.spec.ts (used for testing)
-
-2. Write the Authentication Service
-
-The authentication.service.ts file will include methods for user login, registration, and managing authentication tokens.
-
-Example: src/app/services/authentication.service.ts:
-
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
-
-@Injectable({
-  providedIn: 'root',
-})
-export class AuthenticationService {
-  private baseUrl = 'http://localhost:8080/api/auth'; // Backend URL
-
-  constructor(private http: HttpClient) {}
-
-  // User login
-  login(email: string, password: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/login`, { email, password });
-  }
-
-  // User registration
-  register(user: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/register`, user);
-  }
-
-  // Store JWT token in local storage
-  saveToken(token: string): void {
-    localStorage.setItem('authToken', token);
-  }
-
-  // Retrieve JWT token from local storage
-  getToken(): string | null {
-    return localStorage.getItem('authToken');
-  }
-
-  // Check if the user is authenticated
-  isAuthenticated(): boolean {
-    return !!this.getToken();
-  }
-
-  // Logout the user
-  logout(): void {
-    localStorage.removeItem('authToken');
-  }
+    // Getters and Setters
 }
 
-3. Provide the Service Globally
+2. Flight Booking Flow
 
-The @Injectable({ providedIn: 'root' }) decorator ensures that the service is available application-wide without explicitly adding it to the providers array in the AppModule.
+Updated Requirements
 
-4. Import HttpClientModule in AppModule
+During flight booking:
+	•	Data collected includes:
+	•	name, sourceCity, destinationCity, dateOfJourney, noOfSeats, seatNumbers, flightNumber, and airlineName.
+	•	This data should:
+	•	Be captured via a DTO.
+	•	Be processed by the service layer, which handles seat allocation and saving to the Booking table.
 
-The HttpClient module is required to make API requests.
+Updated Layers
 
-src/app/app.module.ts:
+DTO for Booking
 
-import { HttpClientModule } from '@angular/common/http';
+// DTO for Booking
+public class BookingDTO {
+    private String name;
+    private String sourceCity;
+    private String destinationCity;
+    private LocalDate dateOfJourney;
+    private int noOfSeats;
+    private List<String> seatNumbers;
+    private String flightNumber;
+    private String airlineName;
 
-@NgModule({
-  declarations: [
-    // Your components
-  ],
-  imports: [
-    // Other modules
-    HttpClientModule, // Import HttpClientModule here
-  ],
-  providers: [],
-  bootstrap: [AppComponent],
-})
-export class AppModule {}
-
-5. Use the Service in Components
-
-Inject the AuthenticationService into any component where you need authentication functionalities, such as login or registration.
-
-Example: login.component.ts
-
-import { Component } from '@angular/core';
-import { AuthenticationService } from '../../services/authentication.service';
-import { Router } from '@angular/router';
-
-@Component({
-  selector: 'app-login',
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css'],
-})
-export class LoginComponent {
-  email = '';
-  password = '';
-
-  constructor(private authService: AuthenticationService, private router: Router) {}
-
-  onLogin(): void {
-    this.authService.login(this.email, this.password).subscribe(
-      (response) => {
-        this.authService.saveToken(response.token); // Save token to local storage
-        this.router.navigate(['/']); // Navigate to the home page
-      },
-      (error) => {
-        console.error('Login failed', error);
-      }
-    );
-  }
+    // Getters and Setters
 }
 
-6. Example for Registration
+Controller for Booking
 
-register.component.ts:
+@RestController
+@RequestMapping("/api/bookings")
+public class BookingController {
+    @Autowired
+    private BookingService bookingService;
 
-import { Component } from '@angular/core';
-import { AuthenticationService } from '../../services/authentication.service';
-import { Router } from '@angular/router';
-
-@Component({
-  selector: 'app-register',
-  templateUrl: './register.component.html',
-  styleUrls: ['./register.component.css'],
-})
-export class RegisterComponent {
-  user = {
-    name: '',
-    email: '',
-    password: '',
-  };
-
-  constructor(private authService: AuthenticationService, private router: Router) {}
-
-  onRegister(): void {
-    this.authService.register(this.user).subscribe(
-      (response) => {
-        console.log('Registration successful');
-        this.router.navigate(['/login']); // Redirect to login after registration
-      },
-      (error) => {
-        console.error('Registration failed', error);
-      }
-    );
-  }
+    // Booking Endpoint
+    @PostMapping("/book")
+    public ResponseEntity<String> bookFlight(@RequestBody BookingDTO bookingDTO) {
+        try {
+            bookingService.bookFlight(bookingDTO);
+            return ResponseEntity.ok("Booking successful!");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
 
-Folder Structure
+Service Layer for Booking
 
-src/
-├── app/
-│   ├── components/
-│   │   ├── home/
-│   │   ├── login/
-│   │   ├── register/
-│   ├── services/
-│   │   ├── authentication.service.ts
-│   │   ├── authentication.service.spec.ts
-│   ├── app.module.ts
-│   ├── app-routing.module.ts
+@Service
+public class BookingService {
+    @Autowired
+    private BookingRepository bookingRepository;
 
-By placing the Authentication Service in src/app/services, you ensure it is reusable and well-organized for your Angular project.
+    @Autowired
+    private FlightRepository flightRepository;
 
+    public void bookFlight(BookingDTO bookingDTO) {
+        // Check Flight Availability
+        FlightEntity flight = flightRepository.findByFlightNumberAndAirlineName(
+                bookingDTO.getFlightNumber(),
+                bookingDTO.getAirlineName()
+        ).orElseThrow(() -> new IllegalArgumentException("Flight not found"));
 
+        // Save Booking
+        BookingEntity booking = new BookingEntity();
+        booking.setName(bookingDTO.getName());
+        booking.setSourceCity(bookingDTO.getSourceCity());
+        booking.setDestinationCity(bookingDTO.getDestinationCity());
+        booking.setDateOfJourney(bookingDTO.getDateOfJourney());
+        booking.setNoOfSeats(bookingDTO.getNoOfSeats());
+        booking.setSeatNumbers(String.join(",", bookingDTO.getSeatNumbers()));
+        booking.setFlight(flight);
 
-If your Angular project does not have an app.module.ts file, it could mean you are using Angular Standalone Components, introduced in Angular 14, which allows you to skip creating a centralized module.
-
-Here’s how you should proceed to include the Authentication Service and other features in a standalone Angular application:
-
-1. Setup the Authentication Service
-
-Even without app.module.ts, the AuthenticationService is created the same way:
-
-authentication.service.ts:
-
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-
-@Injectable({
-  providedIn: 'root', // Automatically makes the service available application-wide
-})
-export class AuthenticationService {
-  private baseUrl = 'http://localhost:8080/api/auth';
-
-  constructor(private http: HttpClient) {}
-
-  login(email: string, password: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/login`, { email, password });
-  }
-
-  register(user: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/register`, user);
-  }
-
-  saveToken(token: string): void {
-    localStorage.setItem('authToken', token);
-  }
-
-  getToken(): string | null {
-    return localStorage.getItem('authToken');
-  }
-
-  isAuthenticated(): boolean {
-    return !!this.getToken();
-  }
-
-  logout(): void {
-    localStorage.removeItem('authToken');
-  }
+        bookingRepository.save(booking);
+    }
 }
 
-2. Ensure HttpClientModule is Imported
+Updated Booking Entity
 
-In a standalone Angular application, the HttpClientModule needs to be imported directly in any standalone component where HTTP requests are required.
+@Entity
+@Table(name = "bookings")
+public class BookingEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-3. Login Component
+    private String name;
+    private String sourceCity;
+    private String destinationCity;
+    private LocalDate dateOfJourney;
+    private int noOfSeats;
 
-For your login functionality, the component will look like this:
+    @Column(length = 500)
+    private String seatNumbers; // Stored as a comma-separated string
 
-login.component.ts:
+    @ManyToOne
+    @JoinColumn(name = "flight_id", referencedColumnName = "id")
+    private FlightEntity flight;
 
-import { Component } from '@angular/core';
-import { AuthenticationService } from '../../services/authentication.service';
-import { Router } from '@angular/router';
-import { provideHttpClient, HttpClient } from '@angular/common/http';
-
-@Component({
-  selector: 'app-login',
-  standalone: true,
-  imports: [provideHttpClient()],
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css'],
-})
-export class LoginComponent {
-  email = '';
-  password = '';
-
-  constructor(private authService: AuthenticationService, private router: Router) {}
-
-  onLogin(): void {
-    this.authService.login(this.email, this.password).subscribe(
-      (response) => {
-        this.authService.saveToken(response.token);
-        this.router.navigate(['/']);
-      },
-      (error) => {
-        console.error('Login failed', error);
-      }
-    );
-  }
+    // Getters and Setters
 }
 
-4. Register Component
+3. Other Adjustments
 
-The registration component works similarly:
+Login Flow
+	•	Updated the UserController to include an endpoint for logging in.
+	•	Validates the username and password against the database.
 
-register.component.ts:
+Updated DAO Layers
+	•	UserRepository: Custom query to fetch by username.
+	•	FlightRepository: Custom query to fetch by flightNumber and airlineName.
 
-import { Component } from '@angular/core';
-import { AuthenticationService } from '../../services/authentication.service';
-import { Router } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
+Testing the Flow
+	1.	Swagger Testing:
+	•	Test registration by providing all required fields in the RegistrationDTO.
+	•	Test booking by providing all required fields in the BookingDTO.
+	2.	Front-End Integration:
+	•	Ensure proper mapping of DTO fields from the registration and booking forms.
 
-@Component({
-  selector: 'app-register',
-  standalone: true,
-  imports: [provideHttpClient()],
-  templateUrl: './register.component.html',
-  styleUrls: ['./register.component.css'],
-})
-export class RegisterComponent {
-  user = {
-    name: '',
-    email: '',
-    password: '',
-  };
+This refactored approach ensures a clean separation of concerns:
+	•	DTOs are used for validation and mapping input data.
+	•	Entities handle database interaction.
+	•	Service Layer manages business logic.
+	•	Controllers serve as entry points for APIs.
 
-  constructor(private authService: AuthenticationService, private router: Router) {}
-
-  onRegister(): void {
-    this.authService.register(this.user).subscribe(
-      (response) => {
-        console.log('Registration successful');
-        this.router.navigate(['/login']);
-      },
-      (error) => {
-        console.error('Registration failed', error);
-      }
-    );
-  }
-}
-
-5. Application Routing
-
-In Angular without app.module.ts, you need to define the routes using the standalone component API:
-
-main.ts:
-
-import { bootstrapApplication } from '@angular/platform-browser';
-import { provideRouter, Routes } from '@angular/router';
-import { importProvidersFrom } from '@angular/core';
-
-import { HomeComponent } from './app/components/home/home.component';
-import { LoginComponent } from './app/components/login/login.component';
-import { RegisterComponent } from './app/components/register/register.component';
-
-const routes: Routes = [
-  { path: '', component: HomeComponent },
-  { path: 'login', component: LoginComponent },
-  { path: 'register', component: RegisterComponent },
-];
-
-bootstrapApplication(HomeComponent, {
-  providers: [
-    provideRouter(routes),
-    importProvidersFrom(HttpClientModule), // Enable HttpClient globally
-  ],
-});
-
-6. Folder Structure
-
-For clarity, your project folder structure might look like this:
-
-src/
-├── app/
-│   ├── components/
-│   │   ├── home/
-│   │   ├── login/
-│   │   ├── register/
-│   ├── services/
-│   │   ├── authentication.service.ts
-├── main.ts
-
-Key Notes
-	•	Since you don’t have app.module.ts, you’re using standalone components and direct bootstrapping (bootstrapApplication in main.ts).
-	•	The service (AuthenticationService) is injected directly into components where needed.
-	•	Ensure HttpClientModule is provided either globally or in each component where HTTP calls are made.
-
-Let me know if you need further assistance with Angular Standalone Components or integrating with your backend!
-
-
-
-
-The error “Can’t bind to ngModel since it isn’t a known property” occurs because Angular Forms is not imported into your project. The ngModel directive is provided by the FormsModule, which needs to be explicitly included.
-
-Here’s how to fix it for standalone components:
-
-1. Import FormsModule in Standalone Components
-
-Since you’re using Angular standalone components, you need to explicitly import the FormsModule in each component that uses ngModel.
-
-Update login.component.ts:
-
-import { Component } from '@angular/core';
-import { AuthenticationService } from '../../services/authentication.service';
-import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-
-@Component({
-  selector: 'app-login',
-  standalone: true,
-  imports: [FormsModule],
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css'],
-})
-export class LoginComponent {
-  email = '';
-  password = '';
-
-  constructor(private authService: AuthenticationService, private router: Router) {}
-
-  onLogin(): void {
-    this.authService.login(this.email, this.password).subscribe(
-      (response) => {
-        this.authService.saveToken(response.token);
-        this.router.navigate(['/']);
-      },
-      (error) => {
-        console.error('Login failed', error);
-      }
-    );
-  }
-}
-
-Update register.component.ts:
-
-import { Component } from '@angular/core';
-import { AuthenticationService } from '../../services/authentication.service';
-import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-
-@Component({
-  selector: 'app-register',
-  standalone: true,
-  imports: [FormsModule],
-  templateUrl: './register.component.html',
-  styleUrls: ['./register.component.css'],
-})
-export class RegisterComponent {
-  user = {
-    name: '',
-    email: '',
-    password: '',
-  };
-
-  constructor(private authService: AuthenticationService, private router: Router) {}
-
-  onRegister(): void {
-    this.authService.register(this.user).subscribe(
-      (response) => {
-        console.log('Registration successful');
-        this.router.navigate(['/login']);
-      },
-      (error) => {
-        console.error('Registration failed', error);
-      }
-    );
-  }
-}
-
-2. Add FormsModule to Other Components Using ngModel
-
-If other components (like your HomeComponent) use ngModel, remember to also import FormsModule in those components.
-
-3. Ensure Correct Syntax in HTML
-
-Make sure you are using the [(ngModel)] directive correctly in your HTML templates.
-
-login.component.html:
-
-<div class="login-container">
-  <h2>Login</h2>
-  <form (submit)="onLogin()">
-    <div>
-      <label for="email">Email:</label>
-      <input type="email" id="email" [(ngModel)]="email" name="email" required />
-    </div>
-    <div>
-      <label for="password">Password:</label>
-      <input
-        type="password"
-        id="password"
-        [(ngModel)]="password"
-        name="password"
-        required
-      />
-    </div>
-    <button type="submit">Login</button>
-    <p>
-      Don’t have an account? <a routerLink="/register">Register here</a>
-    </p>
-  </form>
-</div>
-
-register.component.html:
-
-<div class="register-container">
-  <h2>Register</h2>
-  <form (submit)="onRegister()">
-    <div>
-      <label for="name">Name:</label>
-      <input type="text" id="name" [(ngModel)]="user.name" name="name" required />
-    </div>
-    <div>
-      <label for="email">Email:</label>
-      <input type="email" id="email" [(ngModel)]="user.email" name="email" required />
-    </div>
-    <div>
-      <label for="password">Password:</label>
-      <input
-        type="password"
-        id="password"
-        [(ngModel)]="user.password"
-        name="password"
-        required
-      />
-    </div>
-    <button type="submit">Register</button>
-    <p>
-      Already have an account? <a routerLink="/login">Login here</a>
-    </p>
-  </form>
-</div>
-
-4. Verify package.json
-
-Ensure that your project has the required Angular packages installed:
-
-"dependencies": {
-  "@angular/forms": "^15.0.0",
-  "@angular/common": "^15.0.0",
-  "@angular/router": "^15.0.0",
-  ...
-}
-
-Run this command if necessary:
-
-npm install @angular/forms
-
-5. Test the Application
-
-Reload your application and verify that the ngModel bindings now work correctly in both the login and registration forms.
-
-Let me know if you encounter further issues!
+Let me know if you need further clarification or help!
