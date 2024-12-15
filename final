@@ -1,4 +1,4 @@
-This project has multiple entities and complex relationships. I will break the solution into steps and ensure it covers the requested functionality, including login, registration, flight search, flight booking, and seat selection.
+lol This project has multiple entities and complex relationships. I will break the solution into steps and ensure it covers the requested functionality, including login, registration, flight search, flight booking, and seat selection.
 
 1. Project Entity Design
 
@@ -340,3 +340,183 @@ public class BookingController {
 }
 
 This completes the registration, search, and booking flows, with all required entities, services, DTOs, and controllers. Let me know if you need additional details!
+
+
+Here is the code for the UserController, CredentialsController, and SeatService to integrate with the project and handle user-related functionalities, credentials, and seat management:
+
+1. UserController
+
+This controller manages user-related operations such as fetching all users, fetching a single user, and user registration.
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/users")
+public class UserController {
+
+    @Autowired
+    private UserService userService;
+
+    @GetMapping
+    public List<UserDTO> getAllUsers() {
+        return userService.getAllUsers();
+    }
+
+    @GetMapping("/{id}")
+    public UserDTO getUserById(@PathVariable Long id) {
+        return userService.getUserById(id);
+    }
+
+    @PostMapping("/register")
+    public String registerUser(@RequestBody UserDTO userDTO) {
+        userService.registerUser(userDTO);
+        return "User registered successfully!";
+    }
+
+    @PutMapping("/{id}")
+    public String updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
+        userService.updateUser(id, userDTO);
+        return "User updated successfully!";
+    }
+
+    @DeleteMapping("/{id}")
+    public String deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return "User deleted successfully!";
+    }
+}
+
+2. CredentialsController
+
+This controller handles operations related to user login and credentials validation.
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/auth")
+public class CredentialsController {
+
+    @Autowired
+    private CredentialsService credentialsService;
+
+    @PostMapping("/login")
+    public String login(@RequestBody LoginDTO loginDTO) {
+        boolean isAuthenticated = credentialsService.validateCredentials(loginDTO);
+        if (isAuthenticated) {
+            return "Login successful!";
+        } else {
+            return "Invalid username or password!";
+        }
+    }
+
+    @PutMapping("/{id}")
+    public String updateCredentials(@PathVariable Long id, @RequestBody CredentialsDTO credentialsDTO) {
+        credentialsService.updateCredentials(id, credentialsDTO);
+        return "Credentials updated successfully!";
+    }
+
+    @DeleteMapping("/{id}")
+    public String deleteCredentials(@PathVariable Long id) {
+        credentialsService.deleteCredentials(id);
+        return "Credentials deleted successfully!";
+    }
+}
+
+3. SeatService
+
+This service handles seat-related logic, including checking seat availability and updating seat status during booking.
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class SeatService {
+
+    @Autowired
+    private SeatRepository seatRepository;
+
+    public List<SeatEntity> getAllSeatsByFlight(Long flightId) {
+        return seatRepository.findByFlightId(flightId);
+    }
+
+    public SeatEntity getSeatByNumber(Long flightId, String seatNumber) {
+        return seatRepository.findByFlightIdAndSeatNumber(flightId, seatNumber)
+                .orElseThrow(() -> new IllegalArgumentException("Seat not found!"));
+    }
+
+    public void updateSeatStatus(Long flightId, String seatNumber, boolean isAvailable) {
+        SeatEntity seat = seatRepository.findByFlightIdAndSeatNumber(flightId, seatNumber)
+                .orElseThrow(() -> new IllegalArgumentException("Seat not found!"));
+        seat.setAvailable(isAvailable);
+        seatRepository.save(seat);
+    }
+
+    public void resetAllSeatsForFlight(Long flightId) {
+        List<SeatEntity> seats = seatRepository.findByFlightId(flightId);
+        for (SeatEntity seat : seats) {
+            seat.setAvailable(true);
+            seat.setBooking(null);
+        }
+        seatRepository.saveAll(seats);
+    }
+}
+
+DTOs Used
+
+Below are the DTOs used in the above code:
+
+LoginDTO
+
+public class LoginDTO {
+    private String username;
+    private String password;
+
+    // Getters and Setters
+}
+
+UserDTO
+
+public class UserDTO {
+    private Long id;
+    private String name;
+    private int age;
+    private String email;
+
+    // Getters and Setters
+}
+
+CredentialsDTO
+
+public class CredentialsDTO {
+    private String username;
+    private String password;
+
+    // Getters and Setters
+}
+
+Repository Methods to Add in Repositories
+
+SeatRepository
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface SeatRepository extends JpaRepository<SeatEntity, Long> {
+    List<SeatEntity> findByFlightId(Long flightId);
+    Optional<SeatEntity> findByFlightIdAndSeatNumber(Long flightId, String seatNumber);
+}
+
+Explanation of Services
+	1.	UserService: Manages user registration, retrieval, updates, and deletion.
+	2.	CredentialsService: Handles login and credential updates.
+	3.	SeatService: Manages seat availability and updates seat status during bookings.
+
+This structure ensures separation of concerns and maintains a clean architecture for your application. Let me know if you need further assistance!
