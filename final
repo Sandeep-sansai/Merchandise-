@@ -1,0 +1,342 @@
+This project has multiple entities and complex relationships. I will break the solution into steps and ensure it covers the requested functionality, including login, registration, flight search, flight booking, and seat selection.
+
+1. Project Entity Design
+
+Here are the entities and their relationships:
+	1.	UserEntity: Stores user details (mapped to CredentialsEntity for authentication).
+	2.	FlightEntity: Stores flight details.
+	3.	BookingEntity: Stores booking details (mapped to PassengerEntity and SeatEntity).
+	4.	PassengerEntity: Stores individual passenger details within a booking.
+	5.	SeatEntity: Stores seat details for a flight and links them to a booking.
+	6.	CredentialsEntity: Stores user authentication details (username and password).
+	7.	CityEntity: Represents source and destination cities (optional if needed for extensibility).
+
+1.1 Entity Relationships
+
+Key Relationships
+	•	UserEntity has a @OneToOne relationship with CredentialsEntity.
+	•	FlightEntity has a @OneToMany relationship with SeatEntity.
+	•	BookingEntity has a @OneToMany relationship with PassengerEntity.
+	•	BookingEntity has a @ManyToOne relationship with FlightEntity.
+	•	SeatEntity has a @ManyToOne relationship with BookingEntity and FlightEntity.
+
+2. Entity Code
+
+UserEntity
+
+@Entity
+@Table(name = "users")
+public class UserEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private int age;
+    private String address;
+    private String email;
+    private String phoneNumber;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "credentials_id", referencedColumnName = "id")
+    private CredentialsEntity credentials;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<BookingEntity> bookings;
+
+    // Getters and Setters
+}
+
+CredentialsEntity
+
+@Entity
+@Table(name = "credentials")
+public class CredentialsEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String username;
+    private String password;
+
+    @OneToOne(mappedBy = "credentials", cascade = CascadeType.ALL)
+    private UserEntity user;
+
+    // Getters and Setters
+}
+
+FlightEntity
+
+@Entity
+@Table(name = "flights")
+public class FlightEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String airlineName;
+    private String flightNumber;
+    private String sourceCity;
+    private String destinationCity;
+    private LocalDate date;
+    private LocalTime departureTime;
+    private LocalTime arrivalTime;
+    private double price;
+
+    @OneToMany(mappedBy = "flight", cascade = CascadeType.ALL)
+    private List<SeatEntity> seats;
+
+    @OneToMany(mappedBy = "flight", cascade = CascadeType.ALL)
+    private List<BookingEntity> bookings;
+
+    // Getters and Setters
+}
+
+BookingEntity
+
+@Entity
+@Table(name = "bookings")
+public class BookingEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private UserEntity user;
+
+    @ManyToOne
+    @JoinColumn(name = "flight_id", referencedColumnName = "id")
+    private FlightEntity flight;
+
+    private LocalDate bookingDate;
+    private int numberOfSeats;
+
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL)
+    private List<PassengerEntity> passengers;
+
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL)
+    private List<SeatEntity> seats;
+
+    // Getters and Setters
+}
+
+PassengerEntity
+
+@Entity
+@Table(name = "passengers")
+public class PassengerEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private int age;
+
+    @ManyToOne
+    @JoinColumn(name = "booking_id", referencedColumnName = "id")
+    private BookingEntity booking;
+
+    // Getters and Setters
+}
+
+SeatEntity
+
+@Entity
+@Table(name = "seats")
+public class SeatEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String seatNumber;
+    private boolean isAvailable;
+
+    @ManyToOne
+    @JoinColumn(name = "flight_id", referencedColumnName = "id")
+    private FlightEntity flight;
+
+    @ManyToOne
+    @JoinColumn(name = "booking_id", referencedColumnName = "id")
+    private BookingEntity booking;
+
+    // Getters and Setters
+}
+
+3. DTO Code
+
+User Registration DTO
+
+public class RegistrationDTO {
+    private String name;
+    private int age;
+    private String address;
+    private String email;
+    private String phoneNumber;
+    private String username;
+    private String password;
+
+    // Getters and Setters
+}
+
+Flight Search DTO
+
+public class FlightSearchDTO {
+    private String sourceCity;
+    private String destinationCity;
+    private LocalDate date;
+    private int numberOfPassengers;
+
+    // Getters and Setters
+}
+
+Booking DTO
+
+public class BookingDTO {
+    private String passengerName;
+    private int passengerAge;
+    private String passengerAddress;
+    private String email;
+    private String phoneNumber;
+    private int numberOfSeats;
+    private List<String> seatNumbers;
+    private String flightNumber;
+
+    // Getters and Setters
+}
+
+4. Service Code
+
+Registration Service
+
+@Service
+public class RegistrationService {
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private CredentialsRepository credentialsRepository;
+
+    public void registerUser(RegistrationDTO dto) {
+        CredentialsEntity credentials = new CredentialsEntity();
+        credentials.setUsername(dto.getUsername());
+        credentials.setPassword(dto.getPassword());
+
+        credentialsRepository.save(credentials);
+
+        UserEntity user = new UserEntity();
+        user.setName(dto.getName());
+        user.setAge(dto.getAge());
+        user.setAddress(dto.getAddress());
+        user.setEmail(dto.getEmail());
+        user.setPhoneNumber(dto.getPhoneNumber());
+        user.setCredentials(credentials);
+
+        userRepository.save(user);
+    }
+}
+
+Flight Search Service
+
+@Service
+public class FlightSearchService {
+    @Autowired
+    private FlightRepository flightRepository;
+
+    public List<FlightEntity> searchFlights(FlightSearchDTO dto) {
+        return flightRepository.findBySourceCityAndDestinationCityAndDate(
+            dto.getSourceCity(), dto.getDestinationCity(), dto.getDate());
+    }
+}
+
+Booking Service
+
+@Service
+public class BookingService {
+    @Autowired
+    private BookingRepository bookingRepository;
+
+    @Autowired
+    private FlightRepository flightRepository;
+
+    @Autowired
+    private SeatRepository seatRepository;
+
+    public void bookFlight(BookingDTO dto) {
+        FlightEntity flight = flightRepository.findByFlightNumber(dto.getFlightNumber())
+            .orElseThrow(() -> new IllegalArgumentException("Flight not found"));
+
+        BookingEntity booking = new BookingEntity();
+        booking.setFlight(flight);
+        booking.setNumberOfSeats(dto.getNumberOfSeats());
+        booking.setBookingDate(LocalDate.now());
+
+        List<PassengerEntity> passengers = new ArrayList<>();
+        for (int i = 0; i < dto.getNumberOfSeats(); i++) {
+            PassengerEntity passenger = new PassengerEntity();
+            passenger.setName(dto.getPassengerName());
+            passenger.setAge(dto.getPassengerAge());
+            passenger.setBooking(booking);
+            passengers.add(passenger);
+        }
+        booking.setPassengers(passengers);
+
+        bookingRepository.save(booking);
+
+        for (String seatNumber : dto.getSeatNumbers()) {
+            SeatEntity seat = seatRepository.findByFlightAndSeatNumber(flight, seatNumber)
+                .orElseThrow(() -> new IllegalArgumentException("Seat not available"));
+            seat.setAvailable(false);
+            seat.setBooking(booking);
+            seatRepository.save(seat);
+        }
+    }
+}
+
+5. Controller Code
+
+Registration Controller
+
+@RestController
+@RequestMapping("/api/register")
+public class RegistrationController {
+    @Autowired
+    private RegistrationService registrationService;
+
+    @PostMapping
+    public ResponseEntity<String> registerUser(@RequestBody RegistrationDTO dto) {
+        registrationService.registerUser(dto);
+        return ResponseEntity.ok("User registered successfully!");
+    }
+}
+
+Flight Search Controller
+
+@RestController
+@RequestMapping("/api/flights")
+public class FlightController {
+    @Autowired
+    private FlightSearchService flightSearchService;
+
+    @PostMapping("/search")
+    public List<FlightEntity> searchFlights(@RequestBody FlightSearchDTO dto) {
+        return flightSearchService.searchFlights(dto);
+    }
+}
+
+Booking Controller
+
+@RestController
+@RequestMapping("/api/bookings")
+public class BookingController {
+    @Autowired
+    private BookingService bookingService;
+
+    @PostMapping("/book")
+    public ResponseEntity<String> bookFlight(@RequestBody BookingDTO dto) {
+        bookingService.bookFlight(dto);
+        return ResponseEntity.ok("Flight booked successfully!");
+    }
+}
+
+This completes the registration, search, and booking flows, with all required entities, services, DTOs, and controllers. Let me know if you need additional details!
