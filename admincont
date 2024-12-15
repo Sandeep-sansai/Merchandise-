@@ -1,0 +1,234 @@
+Below is the code for the Admin Perspective with all the required functionalities and their respective controllers and service layers. These include:
+	1.	Adding a flight.
+	2.	Removing a flight.
+	3.	Updating a flight.
+	4.	Managing bookings (fetching all bookings, fetching a specific booking, and canceling bookings).
+	5.	Fetching all users.
+	6.	Fetching all flights.
+	7.	Fetching a specific booking.
+
+Controller: AdminController
+
+@RestController
+@RequestMapping("/api/admin")
+public class AdminController {
+
+    @Autowired
+    private FlightService flightService;
+
+    @Autowired
+    private BookingService bookingService;
+
+    @Autowired
+    private UserService userService;
+
+    // Add a flight
+    @PostMapping("/addFlight")
+    public ResponseEntity<String> addFlight(@RequestBody FlightDTO flightDTO) {
+        flightService.addFlight(flightDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Flight added successfully");
+    }
+
+    // Remove a flight
+    @DeleteMapping("/removeFlight/{flightId}")
+    public ResponseEntity<String> removeFlight(@PathVariable Long flightId) {
+        flightService.removeFlight(flightId);
+        return ResponseEntity.ok("Flight removed successfully");
+    }
+
+    // Update a flight
+    @PutMapping("/updateFlight/{flightId}")
+    public ResponseEntity<String> updateFlight(@PathVariable Long flightId, @RequestBody FlightDTO flightDTO) {
+        flightService.updateFlight(flightId, flightDTO);
+        return ResponseEntity.ok("Flight updated successfully");
+    }
+
+    // Fetch all flights
+    @GetMapping("/flights")
+    public ResponseEntity<List<FlightDTO>> getAllFlights() {
+        List<FlightDTO> flights = flightService.getAllFlights();
+        return ResponseEntity.ok(flights);
+    }
+
+    // Fetch a specific flight
+    @GetMapping("/flights/{flightId}")
+    public ResponseEntity<FlightDTO> getFlight(@PathVariable Long flightId) {
+        FlightDTO flight = flightService.getFlightById(flightId);
+        return ResponseEntity.ok(flight);
+    }
+
+    // Fetch all users
+    @GetMapping("/users")
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
+        List<UserDTO> users = userService.getAllUsers();
+        return ResponseEntity.ok(users);
+    }
+
+    // Fetch all bookings
+    @GetMapping("/bookings")
+    public ResponseEntity<List<BookingDTO>> getAllBookings() {
+        List<BookingDTO> bookings = bookingService.getAllBookings();
+        return ResponseEntity.ok(bookings);
+    }
+
+    // Fetch a specific booking
+    @GetMapping("/bookings/{bookingId}")
+    public ResponseEntity<BookingDTO> getBooking(@PathVariable Long bookingId) {
+        BookingDTO booking = bookingService.getBookingById(bookingId);
+        return ResponseEntity.ok(booking);
+    }
+
+    // Cancel a booking
+    @DeleteMapping("/cancelBooking/{bookingId}")
+    public ResponseEntity<String> cancelBooking(@PathVariable Long bookingId) {
+        bookingService.cancelBooking(bookingId);
+        return ResponseEntity.ok("Booking canceled successfully");
+    }
+}
+
+Service Layer
+
+FlightService
+
+@Service
+public class FlightService {
+
+    @Autowired
+    private FlightRepository flightRepository;
+
+    @Autowired
+    private ModelMapper modelMapper;
+
+    public void addFlight(FlightDTO flightDTO) {
+        FlightEntity flightEntity = modelMapper.map(flightDTO, FlightEntity.class);
+        flightRepository.save(flightEntity);
+    }
+
+    public void removeFlight(Long flightId) {
+        flightRepository.deleteById(flightId);
+    }
+
+    public void updateFlight(Long flightId, FlightDTO flightDTO) {
+        Optional<FlightEntity> existingFlight = flightRepository.findById(flightId);
+        if (existingFlight.isPresent()) {
+            FlightEntity flightEntity = existingFlight.get();
+            flightEntity.setAirlineName(flightDTO.getAirlineName());
+            flightEntity.setSourceCity(flightDTO.getSourceCity());
+            flightEntity.setDestinationCity(flightDTO.getDestinationCity());
+            flightEntity.setDepartureTime(flightDTO.getDepartureTime());
+            flightEntity.setArrivalTime(flightDTO.getArrivalTime());
+            flightEntity.setPrice(flightDTO.getPrice());
+            flightRepository.save(flightEntity);
+        } else {
+            throw new RuntimeException("Flight not found");
+        }
+    }
+
+    public List<FlightDTO> getAllFlights() {
+        List<FlightEntity> flights = flightRepository.findAll();
+        return flights.stream()
+                .map(flight -> modelMapper.map(flight, FlightDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    public FlightDTO getFlightById(Long flightId) {
+        FlightEntity flightEntity = flightRepository.findById(flightId)
+                .orElseThrow(() -> new RuntimeException("Flight not found"));
+        return modelMapper.map(flightEntity, FlightDTO.class);
+    }
+}
+
+BookingService
+
+@Service
+public class BookingService {
+
+    @Autowired
+    private BookingRepository bookingRepository;
+
+    @Autowired
+    private ModelMapper modelMapper;
+
+    public List<BookingDTO> getAllBookings() {
+        List<BookingEntity> bookings = bookingRepository.findAll();
+        return bookings.stream()
+                .map(booking -> modelMapper.map(booking, BookingDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    public BookingDTO getBookingById(Long bookingId) {
+        BookingEntity bookingEntity = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+        return modelMapper.map(bookingEntity, BookingDTO.class);
+    }
+
+    public void cancelBooking(Long bookingId) {
+        bookingRepository.deleteById(bookingId);
+    }
+}
+
+UserService
+
+@Service
+public class UserService {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private ModelMapper modelMapper;
+
+    public List<UserDTO> getAllUsers() {
+        List<UserEntity> users = userRepository.findAll();
+        return users.stream()
+                .map(user -> modelMapper.map(user, UserDTO.class))
+                .collect(Collectors.toList());
+    }
+}
+
+DTOs
+
+FlightDTO
+
+public class FlightDTO {
+    private Long id;
+    private String airlineName;
+    private String sourceCity;
+    private String destinationCity;
+    private String departureTime;
+    private String arrivalTime;
+    private double price;
+    // Getters and setters
+}
+
+BookingDTO
+
+public class BookingDTO {
+    private Long id;
+    private String bookingDate;
+    private List<PassengerDTO> passengers;
+    private List<String> seatNumbers;
+    private FlightDTO flight;
+    private UserDTO user;
+    // Getters and setters
+}
+
+UserDTO
+
+public class UserDTO {
+    private Long id;
+    private String name;
+    private String email;
+    private int age;
+    private String address;
+    private String phone;
+    // Getters and setters
+}
+
+Key Notes
+	•	Admin Functionality: The admin can perform CRUD operations on flights and manage users and bookings.
+	•	Service Layer: Handles all business logic and interacts with the DAO layer.
+	•	DTOs: Ensure only necessary fields are exposed to the frontend or other services.
+	•	Mappings: All entities are mapped correctly, ensuring relationships between users, bookings, flights, and seats.
+
+Let me know if you need help integrating these!
