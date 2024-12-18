@@ -1,0 +1,247 @@
+Here’s the complete code for implementing a Sign-Up page in Angular that takes user details, posts the data to the backend API /register, and creates a user in the database.
+
+1. Service: auth.service.ts
+
+This service handles communication with the backend API for user registration.
+
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthService {
+  private apiUrl = 'http://localhost:8080/register'; // Replace with your backend API URL
+
+  constructor(private http: HttpClient) {}
+
+  registerUser(userData: any): Observable<any> {
+    return this.http.post(this.apiUrl, userData);
+  }
+}
+
+Explanation:
+	1.	HttpClient: Allows making HTTP requests.
+	2.	apiUrl: Backend API endpoint for registering a user.
+	3.	registerUser: Sends a POST request with the user data to the backend.
+
+2. Component: sign-up.component.ts
+
+This component collects user input and submits it using the AuthService.
+
+import { Component } from '@angular/core';
+import { AuthService } from '../services/auth.service'; // Path to the AuthService
+import { NgForm } from '@angular/forms';
+
+@Component({
+  selector: 'app-sign-up',
+  templateUrl: './sign-up.component.html',
+  styleUrls: ['./sign-up.component.css']
+})
+export class SignUpComponent {
+  user = {
+    name: '',
+    age: null,
+    address: '',
+    email: '',
+    phoneNumber: '',
+    username: '',
+    password: ''
+  };
+
+  successMessage: string = '';
+  errorMessage: string = '';
+
+  constructor(private authService: AuthService) {}
+
+  onSubmit(form: NgForm): void {
+    if (form.valid) {
+      this.authService.registerUser(this.user).subscribe({
+        next: (response) => {
+          this.successMessage = 'User registered successfully!';
+          form.resetForm(); // Reset the form after success
+        },
+        error: (err) => {
+          this.errorMessage = 'Registration failed. Please try again.';
+          console.error(err);
+        }
+      });
+    }
+  }
+}
+
+Explanation:
+	1.	user object: Stores form input values.
+	2.	onSubmit(): Triggered when the form is submitted.
+	3.	authService.registerUser(): Sends the user data to the backend API.
+	4.	Error/Success messages: Provides feedback to the user.
+
+3. Template: sign-up.component.html
+
+The HTML form for user input.
+
+<div class="container">
+  <h2>User Sign-Up</h2>
+  <form #signUpForm="ngForm" (ngSubmit)="onSubmit(signUpForm)">
+    <mat-form-field class="full-width">
+      <mat-label>Name</mat-label>
+      <input matInput type="text" [(ngModel)]="user.name" name="name" required />
+    </mat-form-field>
+
+    <mat-form-field class="full-width">
+      <mat-label>Age</mat-label>
+      <input matInput type="number" [(ngModel)]="user.age" name="age" required />
+    </mat-form-field>
+
+    <mat-form-field class="full-width">
+      <mat-label>Address</mat-label>
+      <input matInput type="text" [(ngModel)]="user.address" name="address" required />
+    </mat-form-field>
+
+    <mat-form-field class="full-width">
+      <mat-label>Email</mat-label>
+      <input matInput type="email" [(ngModel)]="user.email" name="email" required />
+    </mat-form-field>
+
+    <mat-form-field class="full-width">
+      <mat-label>Phone Number</mat-label>
+      <input matInput type="tel" [(ngModel)]="user.phoneNumber" name="phoneNumber" required />
+    </mat-form-field>
+
+    <mat-form-field class="full-width">
+      <mat-label>Username</mat-label>
+      <input matInput type="text" [(ngModel)]="user.username" name="username" required />
+    </mat-form-field>
+
+    <mat-form-field class="full-width">
+      <mat-label>Password</mat-label>
+      <input matInput type="password" [(ngModel)]="user.password" name="password" required />
+    </mat-form-field>
+
+    <button mat-raised-button color="primary" type="submit">Submit</button>
+  </form>
+
+  <p *ngIf="successMessage" class="success">{{ successMessage }}</p>
+  <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+</div>
+
+Explanation:
+	1.	Form fields: Bind to the user object using [(ngModel)].
+	2.	Validation: Adds required attributes to ensure fields are filled.
+	3.	ngSubmit: Calls onSubmit() on form submission.
+	4.	Success/Error messages: Display messages to the user.
+
+4. Styling: sign-up.component.css
+
+Add beautiful styling for the form.
+
+.container {
+  max-width: 500px;
+  margin: 50px auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+h2 {
+  text-align: center;
+  color: #3f51b5;
+}
+
+mat-form-field {
+  display: block;
+  margin-bottom: 15px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+button {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.success {
+  color: green;
+  text-align: center;
+  margin-top: 15px;
+}
+
+.error {
+  color: red;
+  text-align: center;
+  margin-top: 15px;
+}
+
+5. Register the Component and Service
+
+Add SignUpComponent to app.module.ts
+
+Ensure that:
+	•	FormsModule and HttpClientModule are imported for two-way binding and HTTP requests.
+	•	The component and service are declared.
+
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { FormsModule } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatButtonModule } from '@angular/material/button';
+
+import { AppComponent } from './app.component';
+import { SignUpComponent } from './components/sign-up/sign-up.component';
+import { AuthService } from './services/auth.service';
+
+@NgModule({
+  declarations: [AppComponent, SignUpComponent],
+  imports: [
+    BrowserModule,
+    FormsModule,
+    HttpClientModule,
+    MatInputModule,
+    MatFormFieldModule,
+    MatButtonModule
+  ],
+  providers: [AuthService],
+  bootstrap: [AppComponent]
+})
+export class AppModule {}
+
+6. Add Route for Sign-Up
+
+Add the route in app-routing.module.ts:
+
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { SignUpComponent } from './components/sign-up/sign-up.component';
+
+const routes: Routes = [
+  { path: 'sign-up', component: SignUpComponent },
+  { path: '', redirectTo: 'sign-up', pathMatch: 'full' }
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
+})
+export class AppRoutingModule {}
+
+7. Run the Application
+	•	Start your backend API server (http://localhost:8080/register should be working).
+	•	Run your Angular project:
+
+ng serve
+
+Flow Explanation
+	1.	The user fills in their details in the sign-up form.
+	2.	On clicking Submit, the onSubmit() method in the component triggers.
+	3.	The AuthService sends the user data to the backend API (/register) via a POST request.
+	4.	If successful, a success message is shown, and the form is reset.
+	5.	If an error occurs, an error message is displayed.
+
+Let me know if you need further clarification or modifications!
