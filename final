@@ -1,522 +1,257 @@
-lol This project has multiple entities and complex relationships. I will break the solution into steps and ensure it covers the requested functionality, including login, registration, flight search, flight booking, and seat selection.
+If your frontend is in Angular and running on a different IDE, you need to integrate Spring Security with JWT (JSON Web Tokens) for secure communication between the Angular frontend and the Spring Boot backend. Here’s how you can adapt the solution:
 
-1. Project Entity Design
+1. Update Spring Security Configuration
 
-Here are the entities and their relationships:
-	1.	UserEntity: Stores user details (mapped to CredentialsEntity for authentication).
-	2.	FlightEntity: Stores flight details.
-	3.	BookingEntity: Stores booking details (mapped to PassengerEntity and SeatEntity).
-	4.	PassengerEntity: Stores individual passenger details within a booking.
-	5.	SeatEntity: Stores seat details for a flight and links them to a booking.
-	6.	CredentialsEntity: Stores user authentication details (username and password).
-	7.	CityEntity: Represents source and destination cities (optional if needed for extensibility).
+SecurityConfig.java
 
-1.1 Entity Relationships
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 
-Key Relationships
-	•	UserEntity has a @OneToOne relationship with CredentialsEntity.
-	•	FlightEntity has a @OneToMany relationship with SeatEntity.
-	•	BookingEntity has a @OneToMany relationship with PassengerEntity.
-	•	BookingEntity has a @ManyToOne relationship with FlightEntity.
-	•	SeatEntity has a @ManyToOne relationship with BookingEntity and FlightEntity.
+@Configuration
+public class SecurityConfig {
 
-2. Entity Code
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.csrf().disable()
+            .authorizeRequests()
+            .antMatchers("/api/admin/**").hasRole("ADMIN")
+            .antMatchers("/api/user/**").hasRole("USER")
+            .antMatchers("/api/auth/**").permitAll()
+            .anyRequest().authenticated()
+            .and()
+            .httpBasic(); // Optional for testing purposes
 
-UserEntity
+        return http.build();
+    }
 
-@Entity
-@Table(name = "users")
-public class UserEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
-    private String name;
-    private int age;
-    private String address;
-    private String email;
-    private String phoneNumber;
-
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "credentials_id", referencedColumnName = "id")
-    private CredentialsEntity credentials;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<BookingEntity> bookings;
-
-    // Getters and Setters
-}
-
-CredentialsEntity
-
-@Entity
-@Table(name = "credentials")
-public class CredentialsEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    private String username;
-    private String password;
-
-    @OneToOne(mappedBy = "credentials", cascade = CascadeType.ALL)
-    private UserEntity user;
-
-    // Getters and Setters
-}
-
-FlightEntity
-
-@Entity
-@Table(name = "flights")
-public class FlightEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    private String airlineName;
-    private String flightNumber;
-    private String sourceCity;
-    private String destinationCity;
-    private LocalDate date;
-    private LocalTime departureTime;
-    private LocalTime arrivalTime;
-    private double price;
-
-    @OneToMany(mappedBy = "flight", cascade = CascadeType.ALL)
-    private List<SeatEntity> seats;
-
-    @OneToMany(mappedBy = "flight", cascade = CascadeType.ALL)
-    private List<BookingEntity> bookings;
-
-    // Getters and Setters
-}
-
-BookingEntity
-
-@Entity
-@Table(name = "bookings")
-public class BookingEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    private UserEntity user;
-
-    @ManyToOne
-    @JoinColumn(name = "flight_id", referencedColumnName = "id")
-    private FlightEntity flight;
-
-    private LocalDate bookingDate;
-    private int numberOfSeats;
-
-    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL)
-    private List<PassengerEntity> passengers;
-
-    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL)
-    private List<SeatEntity> seats;
-
-    // Getters and Setters
-}
-
-PassengerEntity
-
-@Entity
-@Table(name = "passengers")
-public class PassengerEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    private String name;
-    private int age;
-
-    @ManyToOne
-    @JoinColumn(name = "booking_id", referencedColumnName = "id")
-    private BookingEntity booking;
-
-    // Getters and Setters
-}
-
-SeatEntity
-
-@Entity
-@Table(name = "seats")
-public class SeatEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    private String seatNumber;
-    private boolean isAvailable;
-
-    @ManyToOne
-    @JoinColumn(name = "flight_id", referencedColumnName = "id")
-    private FlightEntity flight;
-
-    @ManyToOne
-    @JoinColumn(name = "booking_id", referencedColumnName = "id")
-    private BookingEntity booking;
-
-    // Getters and Setters
-}
-
-3. DTO Code
-
-User Registration DTO
-
-public class RegistrationDTO {
-    private String name;
-    private int age;
-    private String address;
-    private String email;
-    private String phoneNumber;
-    private String username;
-    private String password;
-
-    // Getters and Setters
-}
-
-Flight Search DTO
-
-public class FlightSearchDTO {
-    private String sourceCity;
-    private String destinationCity;
-    private LocalDate date;
-    private int numberOfPassengers;
-
-    // Getters and Setters
-}
-
-Booking DTO
-
-public class BookingDTO {
-    private String passengerName;
-    private int passengerAge;
-    private String passengerAddress;
-    private String email;
-    private String phoneNumber;
-    private int numberOfSeats;
-    private List<String> seatNumbers;
-    private String flightNumber;
-
-    // Getters and Setters
-}
-
-4. Service Code
-
-Registration Service
-
-@Service
-public class RegistrationService {
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private CredentialsRepository credentialsRepository;
-
-    public void registerUser(RegistrationDTO dto) {
-        CredentialsEntity credentials = new CredentialsEntity();
-        credentials.setUsername(dto.getUsername());
-        credentials.setPassword(dto.getPassword());
-
-        credentialsRepository.save(credentials);
-
-        UserEntity user = new UserEntity();
-        user.setName(dto.getName());
-        user.setAge(dto.getAge());
-        user.setAddress(dto.getAddress());
-        user.setEmail(dto.getEmail());
-        user.setPhoneNumber(dto.getPhoneNumber());
-        user.setCredentials(credentials);
-
-        userRepository.save(user);
+    @Bean
+    public AuthenticationManager authManager(HttpSecurity http, PasswordEncoder passwordEncoder) throws Exception {
+        return http.getSharedObject(AuthenticationManagerBuilder.class)
+                .inMemoryAuthentication()
+                .withUser("admin").password(passwordEncoder.encode("admin123")).roles("ADMIN")
+                .and()
+                .withUser("user").password(passwordEncoder.encode("user123")).roles("USER")
+                .and()
+                .build();
     }
 }
 
-Flight Search Service
+2. Add JWT Token Utility
 
-@Service
-public class FlightSearchService {
-    @Autowired
-    private FlightRepository flightRepository;
+Create a JwtTokenUtil class to generate and validate JWT tokens.
 
-    public List<FlightEntity> searchFlights(FlightSearchDTO dto) {
-        return flightRepository.findBySourceCityAndDestinationCityAndDate(
-            dto.getSourceCity(), dto.getDestinationCity(), dto.getDate());
+JwtTokenUtil.java
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.stereotype.Component;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+@Component
+public class JwtTokenUtil {
+
+    private final String SECRET_KEY = "your_secret_key";
+
+    public String generateToken(String username, String role) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", role);
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 hours
+                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+                .compact();
+    }
+
+    public Claims extractClaims(String token) {
+        return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
+    }
+
+    public boolean validateToken(String token, String username) {
+        final String extractedUsername = extractClaims(token).getSubject();
+        return (extractedUsername.equals(username) && !isTokenExpired(token));
+    }
+
+    private boolean isTokenExpired(String token) {
+        return extractClaims(token).getExpiration().before(new Date());
     }
 }
 
-Booking Service
+3. Create Authentication Endpoint
 
-@Service
-public class BookingService {
-    @Autowired
-    private BookingRepository bookingRepository;
+Add a controller for authentication where the frontend sends login requests.
 
-    @Autowired
-    private FlightRepository flightRepository;
-
-    @Autowired
-    private SeatRepository seatRepository;
-
-    public void bookFlight(BookingDTO dto) {
-        FlightEntity flight = flightRepository.findByFlightNumber(dto.getFlightNumber())
-            .orElseThrow(() -> new IllegalArgumentException("Flight not found"));
-
-        BookingEntity booking = new BookingEntity();
-        booking.setFlight(flight);
-        booking.setNumberOfSeats(dto.getNumberOfSeats());
-        booking.setBookingDate(LocalDate.now());
-
-        List<PassengerEntity> passengers = new ArrayList<>();
-        for (int i = 0; i < dto.getNumberOfSeats(); i++) {
-            PassengerEntity passenger = new PassengerEntity();
-            passenger.setName(dto.getPassengerName());
-            passenger.setAge(dto.getPassengerAge());
-            passenger.setBooking(booking);
-            passengers.add(passenger);
-        }
-        booking.setPassengers(passengers);
-
-        bookingRepository.save(booking);
-
-        for (String seatNumber : dto.getSeatNumbers()) {
-            SeatEntity seat = seatRepository.findByFlightAndSeatNumber(flight, seatNumber)
-                .orElseThrow(() -> new IllegalArgumentException("Seat not available"));
-            seat.setAvailable(false);
-            seat.setBooking(booking);
-            seatRepository.save(seat);
-        }
-    }
-}
-
-5. Controller Code
-
-Registration Controller
-
-@RestController
-@RequestMapping("/api/register")
-public class RegistrationController {
-    @Autowired
-    private RegistrationService registrationService;
-
-    @PostMapping
-    public ResponseEntity<String> registerUser(@RequestBody RegistrationDTO dto) {
-        registrationService.registerUser(dto);
-        return ResponseEntity.ok("User registered successfully!");
-    }
-}
-
-Flight Search Controller
-
-@RestController
-@RequestMapping("/api/flights")
-public class FlightController {
-    @Autowired
-    private FlightSearchService flightSearchService;
-
-    @PostMapping("/search")
-    public List<FlightEntity> searchFlights(@RequestBody FlightSearchDTO dto) {
-        return flightSearchService.searchFlights(dto);
-    }
-}
-
-Booking Controller
-
-@RestController
-@RequestMapping("/api/bookings")
-public class BookingController {
-    @Autowired
-    private BookingService bookingService;
-
-    @PostMapping("/book")
-    public ResponseEntity<String> bookFlight(@RequestBody BookingDTO dto) {
-        bookingService.bookFlight(dto);
-        return ResponseEntity.ok("Flight booked successfully!");
-    }
-}
-
-This completes the registration, search, and booking flows, with all required entities, services, DTOs, and controllers. Let me know if you need additional details!
-
-
-Here is the code for the UserController, CredentialsController, and SeatService to integrate with the project and handle user-related functionalities, credentials, and seat management:
-
-1. UserController
-
-This controller manages user-related operations such as fetching all users, fetching a single user, and user registration.
+AuthController.java
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/users")
-public class UserController {
+@RequestMapping("/api/auth")
+public class AuthController {
 
     @Autowired
-    private UserService userService;
-
-    @GetMapping
-    public List<UserDTO> getAllUsers() {
-        return userService.getAllUsers();
-    }
-
-    @GetMapping("/{id}")
-    public UserDTO getUserById(@PathVariable Long id) {
-        return userService.getUserById(id);
-    }
-
-    @PostMapping("/register")
-    public String registerUser(@RequestBody UserDTO userDTO) {
-        userService.registerUser(userDTO);
-        return "User registered successfully!";
-    }
-
-    @PutMapping("/{id}")
-    public String updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
-        userService.updateUser(id, userDTO);
-        return "User updated successfully!";
-    }
-
-    @DeleteMapping("/{id}")
-    public String deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
-        return "User deleted successfully!";
-    }
-}
-
-2. CredentialsController
-
-This controller handles operations related to user login and credentials validation.
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
-@RestController
-@RequestMapping("/auth")
-public class CredentialsController {
+    private AuthenticationManager authenticationManager;
 
     @Autowired
-    private CredentialsService credentialsService;
+    private JwtTokenUtil jwtTokenUtil;
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginDTO loginDTO) {
-        boolean isAuthenticated = credentialsService.validateCredentials(loginDTO);
-        if (isAuthenticated) {
-            return "Login successful!";
+    public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            credentials.get("username"), credentials.get("password"))
+            );
+
+            String role = authentication.getAuthorities().iterator().next().getAuthority();
+            String token = jwtTokenUtil.generateToken(credentials.get("username"), role);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("token", token);
+            response.put("role", role);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body("Invalid credentials");
+        }
+    }
+}
+
+4. Configure Frontend (Angular)
+
+Install Dependencies
+
+Install JWT and HTTP libraries:
+
+npm install @auth0/angular-jwt
+
+Add Token Storage
+
+Create a service to store and retrieve tokens.
+
+auth.service.ts
+
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class AuthService {
+  private apiUrl = 'http://localhost:8080/api/auth/login';
+
+  constructor(private http: HttpClient) {}
+
+  login(username: string, password: string) {
+    return this.http.post(this.apiUrl, { username, password });
+  }
+
+  saveToken(token: string) {
+    localStorage.setItem('token', token);
+  }
+
+  getToken() {
+    return localStorage.getItem('token');
+  }
+
+  logout() {
+    localStorage.removeItem('token');
+  }
+}
+
+Add Route Guards
+
+Restrict access to routes based on roles.
+
+auth.guard.ts
+
+import { Injectable } from '@angular/core';
+import { CanActivate, Router } from '@angular/router';
+import { AuthService } from './auth.service';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class AuthGuard implements CanActivate {
+  constructor(private authService: AuthService, private router: Router) {}
+
+  canActivate(): boolean {
+    const token = this.authService.getToken();
+    if (token) {
+      return true;
+    } else {
+      this.router.navigate(['/login']);
+      return false;
+    }
+  }
+}
+
+Create Login Component
+
+login.component.ts
+
+import { Component } from '@angular/core';
+import { AuthService } from '../services/auth.service';
+import { Router } from '@angular/router';
+
+@Component({
+  selector: 'app-login',
+  templateUrl: './login.component.html',
+})
+export class LoginComponent {
+  username = '';
+  password = '';
+
+  constructor(private authService: AuthService, private router: Router) {}
+
+  login() {
+    this.authService.login(this.username, this.password).subscribe(
+      (response: any) => {
+        this.authService.saveToken(response.token);
+        if (response.role === 'ROLE_ADMIN') {
+          this.router.navigate(['/admin/dashboard']);
         } else {
-            return "Invalid username or password!";
+          this.router.navigate(['/user/dashboard']);
         }
-    }
-
-    @PutMapping("/{id}")
-    public String updateCredentials(@PathVariable Long id, @RequestBody CredentialsDTO credentialsDTO) {
-        credentialsService.updateCredentials(id, credentialsDTO);
-        return "Credentials updated successfully!";
-    }
-
-    @DeleteMapping("/{id}")
-    public String deleteCredentials(@PathVariable Long id) {
-        credentialsService.deleteCredentials(id);
-        return "Credentials deleted successfully!";
-    }
+      },
+      (error) => {
+        alert('Invalid credentials');
+      }
+    );
+  }
 }
 
-3. SeatService
+5. Test the Application
+	1.	Start your Spring Boot application.
+	2.	Run the Angular application.
+	3.	Navigate to the login page and test:
+	•	Admin credentials (admin, admin123) → Redirects to /admin/dashboard.
+	•	User credentials (user, user123) → Redirects to /user/dashboard.
 
-This service handles seat-related logic, including checking seat availability and updating seat status during booking.
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-
-@Service
-public class SeatService {
-
-    @Autowired
-    private SeatRepository seatRepository;
-
-    public List<SeatEntity> getAllSeatsByFlight(Long flightId) {
-        return seatRepository.findByFlightId(flightId);
-    }
-
-    public SeatEntity getSeatByNumber(Long flightId, String seatNumber) {
-        return seatRepository.findByFlightIdAndSeatNumber(flightId, seatNumber)
-                .orElseThrow(() -> new IllegalArgumentException("Seat not found!"));
-    }
-
-    public void updateSeatStatus(Long flightId, String seatNumber, boolean isAvailable) {
-        SeatEntity seat = seatRepository.findByFlightIdAndSeatNumber(flightId, seatNumber)
-                .orElseThrow(() -> new IllegalArgumentException("Seat not found!"));
-        seat.setAvailable(isAvailable);
-        seatRepository.save(seat);
-    }
-
-    public void resetAllSeatsForFlight(Long flightId) {
-        List<SeatEntity> seats = seatRepository.findByFlightId(flightId);
-        for (SeatEntity seat : seats) {
-            seat.setAvailable(true);
-            seat.setBooking(null);
-        }
-        seatRepository.saveAll(seats);
-    }
-}
-
-DTOs Used
-
-Below are the DTOs used in the above code:
-
-LoginDTO
-
-public class LoginDTO {
-    private String username;
-    private String password;
-
-    // Getters and Setters
-}
-
-UserDTO
-
-public class UserDTO {
-    private Long id;
-    private String name;
-    private int age;
-    private String email;
-
-    // Getters and Setters
-}
-
-CredentialsDTO
-
-public class CredentialsDTO {
-    private String username;
-    private String password;
-
-    // Getters and Setters
-}
-
-Repository Methods to Add in Repositories
-
-SeatRepository
-
-import org.springframework.data.jpa.repository.JpaRepository;
-
-import java.util.List;
-import java.util.Optional;
-
-public interface SeatRepository extends JpaRepository<SeatEntity, Long> {
-    List<SeatEntity> findByFlightId(Long flightId);
-    Optional<SeatEntity> findByFlightIdAndSeatNumber(Long flightId, String seatNumber);
-}
-
-Explanation of Services
-	1.	UserService: Manages user registration, retrieval, updates, and deletion.
-	2.	CredentialsService: Handles login and credential updates.
-	3.	SeatService: Manages seat availability and updates seat status during bookings.
-
-This structure ensures separation of concerns and maintains a clean architecture for your application. Let me know if you need further assistance!
+Let me know if you need further assistance!
