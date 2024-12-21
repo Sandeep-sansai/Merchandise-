@@ -1,202 +1,189 @@
-To implement your home page using Angular Material modules, we’ll utilize Angular Material components such as the Toolbar, Carousel/Slideshow, Button, Grid Layout, and Footer elements. Here’s how you can achieve this:
+Here’s an implementation of a slideshow component without using mat-grid-list. This version will use Angular Material for styling but rely on CSS for the slideshow layout:
 
-1. Component Template (home.component.html)
+Slideshow Component
 
-<div class="home-container">
-  <!-- Navbar -->
-  <mat-toolbar color="primary" class="navbar">
-    <span class="logo">Airline Management</span>
-    <span class="spacer"></span>
-    <button mat-button routerLink="/home">Home</button>
-    <button mat-button routerLink="/search">Search Flights</button>
-    <button mat-button routerLink="/about">About</button>
-    <button mat-button routerLink="/contact">Contact</button>
-  </mat-toolbar>
+1. HTML (home.component.html):
 
-  <!-- Slideshow -->
-  <mat-grid-list cols="1" rowHeight="300px" class="slideshow-container">
-    <mat-grid-tile>
-      <img *ngIf="currentSlide === 0" src="assets/images/slide1.jpg" alt="Slide 1">
-      <img *ngIf="currentSlide === 1" src="assets/images/slide2.jpg" alt="Slide 2">
-      <img *ngIf="currentSlide === 2" src="assets/images/slide3.jpg" alt="Slide 3">
-    </mat-grid-tile>
-  </mat-grid-list>
-
-  <!-- Hero Section -->
-  <div class="hero">
-    <h1>Book Your Next Adventure</h1>
-    <p>Explore new destinations with comfort and ease.</p>
-    <button mat-raised-button color="accent" routerLink="/book">Book Tickets</button>
-  </div>
-
-  <!-- Footer -->
-  <mat-grid-list cols="2" rowHeight="auto" class="footer">
-    <mat-grid-tile>
-      <h3>Quick Links</h3>
-      <button mat-button color="warn" href="https://facebook.com" target="_blank">Facebook</button>
-      <button mat-button color="warn" href="https://twitter.com" target="_blank">Twitter</button>
-      <button mat-button color="warn" href="https://instagram.com" target="_blank">Instagram</button>
-    </mat-grid-tile>
-    <mat-grid-tile>
-      <h3>Contact Us</h3>
-      <p>Email: support@airlinemanagement.com</p>
-      <p>Phone: +1 123-456-7890</p>
-    </mat-grid-tile>
-  </mat-grid-list>
+<div class="navbar">
+  <!-- Navbar Content -->
 </div>
 
-2. Component Styling (home.component.css)
+<div class="slideshow-container">
+  <div *ngFor="let slide of slides; let i = index" class="mySlides fade" [class.active]="i === currentSlide">
+    <img [src]="slide.image" class="slideshow-image" alt="Slide Image {{ i + 1 }}" />
+    <div class="caption">{{ slide.caption }}</div>
+  </div>
 
-/* Navbar */
+  <button class="prev" (click)="changeSlide(-1)">&#10094;</button>
+  <button class="next" (click)="changeSlide(1)">&#10095;</button>
+</div>
+
+<div class="hero-button-container">
+  <button mat-raised-button color="primary" (click)="bookTickets()">Book Tickets</button>
+</div>
+
+<footer class="footer">
+  <h3>Quick Links</h3>
+  <a href="https://facebook.com" target="_blank">Facebook</a>
+  <a href="https://twitter.com" target="_blank">Twitter</a>
+  <a href="https://instagram.com" target="_blank">Instagram</a>
+</footer>
+
+2. CSS (home.component.css):
+
+/* Navbar Styling */
 .navbar {
-  display: flex;
-  justify-content: space-between;
-}
-
-.spacer {
-  flex: 1;
-}
-
-/* Slideshow */
-.slideshow-container {
-  overflow: hidden;
-  position: relative;
-}
-
-.slideshow-container img {
-  width: 100%;
-  height: 300px;
-  object-fit: cover;
-  transition: opacity 1s ease-in-out;
-}
-
-/* Hero Section */
-.hero {
-  text-align: center;
-  margin: 20px auto;
-  padding: 40px 20px;
-  background-color: #f8f9fa;
-}
-
-.hero h1 {
-  font-size: 2.5rem;
-  margin-bottom: 15px;
-}
-
-.hero p {
-  font-size: 1.2rem;
-  margin-bottom: 20px;
-}
-
-.hero button {
-  font-size: 1rem;
-}
-
-/* Footer */
-.footer {
-  background-color: #343a40;
+  background-color: #1976d2;
   color: white;
-  padding: 20px;
+  padding: 1rem;
+  text-align: center;
+  font-size: 1.5rem;
+}
+
+/* Slideshow Container */
+.slideshow-container {
+  position: relative;
+  max-width: 100%;
+  margin: auto;
+  overflow: hidden;
+}
+
+.mySlides {
+  display: none;
+  position: absolute;
+  width: 100%;
+}
+
+.mySlides.active {
+  display: block;
+  animation: fadeEffect 1.5s;
+}
+
+.slideshow-image {
+  width: 100%;
+  height: auto;
+}
+
+.caption {
+  color: #fff;
+  font-size: 1.2rem;
+  background-color: rgba(0, 0, 0, 0.5);
+  text-align: center;
+  padding: 0.5rem;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}
+
+/* Buttons for Navigation */
+.prev, .next {
+  cursor: pointer;
+  position: absolute;
+  top: 50%;
+  width: auto;
+  padding: 0.5rem;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.5);
+  border: none;
+  font-size: 2rem;
+  transform: translateY(-50%);
+}
+
+.prev {
+  left: 10px;
+}
+
+.next {
+  right: 10px;
+}
+
+.hero-button-container {
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.hero-button-container button {
+  padding: 0.75rem 2rem;
+  font-size: 1.2rem;
+}
+
+/* Footer Styling */
+.footer {
+  background-color: #f8f8f8;
+  text-align: center;
+  padding: 1rem;
 }
 
 .footer h3 {
-  color: #ffd700;
+  margin: 0.5rem 0;
 }
 
-.footer button {
-  text-transform: capitalize;
+.footer a {
+  color: #1976d2;
+  margin: 0 1rem;
+  text-decoration: none;
 }
 
-3. Component Script (home.component.ts)
+.footer a:hover {
+  text-decoration: underline;
+}
+
+/* Animation */
+@keyframes fadeEffect {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+3. TypeScript (home.component.ts):
 
 import { Component, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
-  styleUrls: ['./home.component.css'],
+  styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit {
-  currentSlide: number = 0;
-  totalSlides: number = 3;
-
-  constructor() {}
+  slides = [
+    { image: 'assets/slide1.jpg', caption: 'Welcome to Airline Management' },
+    { image: 'assets/slide2.jpg', caption: 'Book Your Flights Today' },
+    { image: 'assets/slide3.jpg', caption: 'Travel With Comfort' }
+  ];
+  currentSlide = 0;
 
   ngOnInit(): void {
     this.startSlideshow();
   }
 
-  startSlideshow(): void {
+  startSlideshow() {
     setInterval(() => {
-      this.currentSlide = (this.currentSlide + 1) % this.totalSlides;
+      this.changeSlide(1);
     }, 5000); // Change slide every 5 seconds
+  }
+
+  changeSlide(direction: number) {
+    this.currentSlide = (this.currentSlide + direction + this.slides.length) % this.slides.length;
+  }
+
+  bookTickets() {
+    // Navigate to booking page or open booking modal
+    console.log('Navigate to booking page');
   }
 }
 
-4. Angular Material Modules
+4. Add Images
 
-Make sure to import the necessary Angular Material modules into your application. Add them to your AppModule:
+Place your slideshow images in the src/assets folder. Update the slides array in home.component.ts with your image paths and captions.
 
-import { NgModule } from '@angular/core';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatButtonModule } from '@angular/material/button';
-import { MatGridListModule } from '@angular/material/grid-list';
+How It Works
+	1.	Navbar: Always displayed at the top with a consistent look.
+	2.	Slideshow: Cycles through images with captions. Users can navigate using the “previous” and “next” buttons.
+	3.	Hero Button: Prominently placed button to guide users to book tickets.
+	4.	Footer: Displays quick links to social media or other useful pages.
+	5.	Responsive Design: The layout is mobile-friendly and adapts to various screen sizes.
 
-@NgModule({
-  declarations: [],
-  imports: [
-    MatToolbarModule,
-    MatButtonModule,
-    MatGridListModule,
-  ],
-  exports: [
-    MatToolbarModule,
-    MatButtonModule,
-    MatGridListModule,
-  ],
-})
-export class MaterialModule {}
-
-Include the MaterialModule in your AppModule:
-
-import { MaterialModule } from './material.module';
-
-@NgModule({
-  imports: [
-    MaterialModule,
-    // Other imports...
-  ],
-})
-export class AppModule {}
-
-Explanation
-	1.	Navbar:
-	•	mat-toolbar provides the navbar with a primary color theme.
-	•	Buttons within the navbar are created using mat-button and styled to align horizontally.
-	2.	Slideshow:
-	•	Uses mat-grid-list to display a slideshow.
-	•	The currentSlide is updated every 5 seconds using setInterval, which changes the image dynamically.
-	3.	Hero Section:
-	•	Contains a header, description, and a mat-raised-button for the “Book Tickets” button.
-	4.	Footer:
-	•	Built with a two-column layout using mat-grid-list, providing sections for Quick Links and Contact Info.
-	5.	Slideshow Logic:
-	•	The slideshow dynamically changes the displayed image by incrementing the currentSlide index.
-
-Running the Application
-	1.	Ensure the Angular Material library is installed:
-
-ng add @angular/material
-
-
-	2.	Add images to the assets/images folder:
-	•	slide1.jpg
-	•	slide2.jpg
-	•	slide3.jpg
-	3.	Serve the application:
-
-ng serve
-
-
-
-You’ll have a responsive home page with Angular Material components, including a navbar, slideshow, hero button, and footer!
+Let me know if you need any enhancements!
