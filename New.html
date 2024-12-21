@@ -1,1292 +1,202 @@
-Below is the full Angular implementation of the airline management system front end. This includes all necessary components, services, and routing configuration. For simplicity, I’m assuming the use of Angular Material for the UI and a basic folder structure. The project integrates with your backend for API calls.
+To implement your home page using Angular Material modules, we’ll utilize Angular Material components such as the Toolbar, Carousel/Slideshow, Button, Grid Layout, and Footer elements. Here’s how you can achieve this:
 
-Project Structure
+1. Component Template (home.component.html)
 
-src/app
-│
-├── admin
-│   ├── add-flight
-│   │   ├── add-flight.component.ts
-│   │   ├── add-flight.component.html
-│   │   ├── add-flight.component.css
-│   │   └── add-flight.component.spec.ts
-│   ├── view-bookings
-│   │   ├── view-bookings.component.ts
-│   │   ├── view-bookings.component.html
-│   │   ├── view-bookings.component.css
-│   │   └── view-bookings.component.spec.ts
-│   ├── admin-dashboard.component.ts
-│   └── admin-dashboard.component.html
-│
-├── user
-│   ├── search-flight
-│   │   ├── search-flight.component.ts
-│   │   ├── search-flight.component.html
-│   │   ├── search-flight.component.css
-│   │   └── search-flight.component.spec.ts
-│   ├── book-flight
-│   │   ├── book-flight.component.ts
-│   │   ├── book-flight.component.html
-│   │   ├── book-flight.component.css
-│   │   └── book-flight.component.spec.ts
-│   ├── view-bookings
-│   │   ├── view-bookings.component.ts
-│   │   ├── view-bookings.component.html
-│   │   ├── view-bookings.component.css
-│   │   └── view-bookings.component.spec.ts
-│   ├── user-dashboard.component.ts
-│   └── user-dashboard.component.html
-│
-├── services
-│   ├── flight.service.ts
-│   ├── booking.service.ts
-│   └── auth.service.ts
-│
-├── shared
-│   ├── navbar
-│   │   ├── navbar.component.ts
-│   │   ├── navbar.component.html
-│   │   └── navbar.component.css
-│   ├── footer
-│   │   ├── footer.component.ts
-│   │   ├── footer.component.html
-│   │   └── footer.component.css
-│
-├── app.component.ts
-├── app.component.html
-├── app.module.ts
-└── app-routing.module.ts
+<div class="home-container">
+  <!-- Navbar -->
+  <mat-toolbar color="primary" class="navbar">
+    <span class="logo">Airline Management</span>
+    <span class="spacer"></span>
+    <button mat-button routerLink="/home">Home</button>
+    <button mat-button routerLink="/search">Search Flights</button>
+    <button mat-button routerLink="/about">About</button>
+    <button mat-button routerLink="/contact">Contact</button>
+  </mat-toolbar>
 
-Code Implementation
+  <!-- Slideshow -->
+  <mat-grid-list cols="1" rowHeight="300px" class="slideshow-container">
+    <mat-grid-tile>
+      <img *ngIf="currentSlide === 0" src="assets/images/slide1.jpg" alt="Slide 1">
+      <img *ngIf="currentSlide === 1" src="assets/images/slide2.jpg" alt="Slide 2">
+      <img *ngIf="currentSlide === 2" src="assets/images/slide3.jpg" alt="Slide 3">
+    </mat-grid-tile>
+  </mat-grid-list>
 
-1. Setup Modules
-
-Install dependencies:
-
-ng add @angular/material
-npm install @angular/flex-layout
-
-2. Main Files
-
-app.module.ts
-
-import { NgModule } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { HttpClientModule } from '@angular/common/http';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-
-import { AppRoutingModule } from './app-routing.module';
-import { AppComponent } from './app.component';
-
-// Material Modules
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatTableModule } from '@angular/material/table';
-import { MatCardModule } from '@angular/material/card';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
-
-// Components
-import { NavbarComponent } from './shared/navbar/navbar.component';
-import { FooterComponent } from './shared/footer/footer.component';
-import { AdminDashboardComponent } from './admin/admin-dashboard.component';
-import { AddFlightComponent } from './admin/add-flight/add-flight.component';
-import { ViewBookingsComponent as AdminViewBookings } from './admin/view-bookings/view-bookings.component';
-import { UserDashboardComponent } from './user/user-dashboard.component';
-import { SearchFlightComponent } from './user/search-flight/search-flight.component';
-import { BookFlightComponent } from './user/book-flight/book-flight.component';
-import { ViewBookingsComponent as UserViewBookings } from './user/view-bookings/view-bookings.component';
-
-@NgModule({
-  declarations: [
-    AppComponent,
-    NavbarComponent,
-    FooterComponent,
-    AdminDashboardComponent,
-    AddFlightComponent,
-    AdminViewBookings,
-    UserDashboardComponent,
-    SearchFlightComponent,
-    BookFlightComponent,
-    UserViewBookings,
-  ],
-  imports: [
-    BrowserModule,
-    AppRoutingModule,
-    BrowserAnimationsModule,
-    HttpClientModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MatToolbarModule,
-    MatInputModule,
-    MatButtonModule,
-    MatTableModule,
-    MatCardModule,
-    MatSnackBarModule,
-  ],
-  providers: [],
-  bootstrap: [AppComponent],
-})
-export class AppModule {}
-
-app-routing.module.ts
-
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
-
-import { AdminDashboardComponent } from './admin/admin-dashboard.component';
-import { AddFlightComponent } from './admin/add-flight/add-flight.component';
-import { ViewBookingsComponent as AdminViewBookings } from './admin/view-bookings/view-bookings.component';
-
-import { UserDashboardComponent } from './user/user-dashboard.component';
-import { SearchFlightComponent } from './user/search-flight/search-flight.component';
-import { BookFlightComponent } from './user/book-flight/book-flight.component';
-import { ViewBookingsComponent as UserViewBookings } from './user/view-bookings/view-bookings.component';
-
-const routes: Routes = [
-  { path: 'admin', component: AdminDashboardComponent, children: [
-    { path: 'add-flight', component: AddFlightComponent },
-    { path: 'view-bookings', component: AdminViewBookings },
-  ] },
-  { path: 'user', component: UserDashboardComponent, children: [
-    { path: 'search-flight', component: SearchFlightComponent },
-    { path: 'book-flight', component: BookFlightComponent },
-    { path: 'view-bookings', component: UserViewBookings },
-  ] },
-  { path: '**', redirectTo: 'user' },
-];
-
-@NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule],
-})
-export class AppRoutingModule {}
-
-Let me know which specific components you’d like to see the implementation for (e.g., search-flight.component.ts or add-flight.component.ts), and I’ll provide the complete code!
-
-
-
-Below is the complete implementation for every component, service, and file required for the Angular-based airline management system.
-
-1. Admin Components
-
-1.1 AddFlightComponent
-
-add-flight.component.ts
-
-import { Component } from '@angular/core';
-import { FlightService } from '../../services/flight.service';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-
-@Component({
-  selector: 'app-add-flight',
-  templateUrl: './add-flight.component.html',
-  styleUrls: ['./add-flight.component.css']
-})
-export class AddFlightComponent {
-  addFlightForm: FormGroup;
-
-  constructor(private fb: FormBuilder, private flightService: FlightService) {
-    this.addFlightForm = this.fb.group({
-      source: ['', Validators.required],
-      destination: ['', Validators.required],
-      date: ['', Validators.required],
-      time: ['', Validators.required],
-      seats: ['', [Validators.required, Validators.min(1)]],
-    });
-  }
-
-  onSubmit() {
-    if (this.addFlightForm.valid) {
-      this.flightService.addFlight(this.addFlightForm.value).subscribe({
-        next: () => alert('Flight added successfully!'),
-        error: () => alert('Failed to add flight'),
-      });
-    }
-  }
-}
-
-add-flight.component.html
-
-<mat-card>
-  <h1>Add Flight</h1>
-  <form [formGroup]="addFlightForm" (ngSubmit)="onSubmit()">
-    <mat-form-field>
-      <mat-label>Source</mat-label>
-      <input matInput formControlName="source" />
-    </mat-form-field>
-    <mat-form-field>
-      <mat-label>Destination</mat-label>
-      <input matInput formControlName="destination" />
-    </mat-form-field>
-    <mat-form-field>
-      <mat-label>Date</mat-label>
-      <input matInput type="date" formControlName="date" />
-    </mat-form-field>
-    <mat-form-field>
-      <mat-label>Time</mat-label>
-      <input matInput type="time" formControlName="time" />
-    </mat-form-field>
-    <mat-form-field>
-      <mat-label>Seats</mat-label>
-      <input matInput type="number" formControlName="seats" />
-    </mat-form-field>
-    <button mat-raised-button color="primary" type="submit">Add Flight</button>
-  </form>
-</mat-card>
-
-1.2 ViewBookingsComponent (Admin)
-
-view-bookings.component.ts
-
-import { Component, OnInit } from '@angular/core';
-import { BookingService } from '../../services/booking.service';
-
-@Component({
-  selector: 'app-view-bookings',
-  templateUrl: './view-bookings.component.html',
-  styleUrls: ['./view-bookings.component.css']
-})
-export class ViewBookingsComponent implements OnInit {
-  bookings: any[] = [];
-
-  constructor(private bookingService: BookingService) {}
-
-  ngOnInit() {
-    this.bookingService.getAllBookings().subscribe({
-      next: (data) => (this.bookings = data),
-      error: () => alert('Failed to fetch bookings'),
-    });
-  }
-}
-
-view-bookings.component.html
-
-<mat-card>
-  <h1>All Bookings</h1>
-  <table mat-table [dataSource]="bookings" class="mat-elevation-z8">
-    <ng-container matColumnDef="id">
-      <th mat-header-cell *matHeaderCellDef> ID </th>
-      <td mat-cell *matCellDef="let booking"> {{ booking.id }} </td>
-    </ng-container>
-    <ng-container matColumnDef="passengerName">
-      <th mat-header-cell *matHeaderCellDef> Passenger Name </th>
-      <td mat-cell *matCellDef="let booking"> {{ booking.passengerName }} </td>
-    </ng-container>
-    <ng-container matColumnDef="flightId">
-      <th mat-header-cell *matHeaderCellDef> Flight ID </th>
-      <td mat-cell *matCellDef="let booking"> {{ booking.flightId }} </td>
-    </ng-container>
-    <tr mat-header-row *matHeaderRowDef="['id', 'passengerName', 'flightId']"></tr>
-    <tr mat-row *matRowDef="let row; columns: ['id', 'passengerName', 'flightId'];"></tr>
-  </table>
-</mat-card>
-
-2. User Components
-
-2.1 SearchFlightComponent
-
-search-flight.component.ts
-
-import { Component } from '@angular/core';
-import { FlightService } from '../../services/flight.service';
-
-@Component({
-  selector: 'app-search-flight',
-  templateUrl: './search-flight.component.html',
-  styleUrls: ['./search-flight.component.css']
-})
-export class SearchFlightComponent {
-  flights: any[] = [];
-  searchCriteria = { source: '', destination: '', date: '' };
-
-  constructor(private flightService: FlightService) {}
-
-  onSearch() {
-    this.flightService.searchFlights(this.searchCriteria).subscribe({
-      next: (data) => (this.flights = data),
-      error: () => alert('Failed to fetch flights'),
-    });
-  }
-}
-
-search-flight.component.html
-
-<mat-card>
-  <h1>Search Flights</h1>
-  <form>
-    <mat-form-field>
-      <mat-label>Source</mat-label>
-      <input matInput [(ngModel)]="searchCriteria.source" name="source" />
-    </mat-form-field>
-    <mat-form-field>
-      <mat-label>Destination</mat-label>
-      <input matInput [(ngModel)]="searchCriteria.destination" name="destination" />
-    </mat-form-field>
-    <mat-form-field>
-      <mat-label>Date</mat-label>
-      <input matInput type="date" [(ngModel)]="searchCriteria.date" name="date" />
-    </mat-form-field>
-    <button mat-raised-button color="primary" type="button" (click)="onSearch()">Search</button>
-  </form>
-
-  <div *ngIf="flights.length > 0">
-    <h2>Available Flights</h2>
-    <ul>
-      <li *ngFor="let flight of flights">
-        Flight {{ flight.id }}: {{ flight.source }} → {{ flight.destination }} at {{ flight.time }}
-      </li>
-    </ul>
+  <!-- Hero Section -->
+  <div class="hero">
+    <h1>Book Your Next Adventure</h1>
+    <p>Explore new destinations with comfort and ease.</p>
+    <button mat-raised-button color="accent" routerLink="/book">Book Tickets</button>
   </div>
-</mat-card>
 
-Would you like to continue with remaining components, services, or shared elements (like Navbar/Footer)? Let me know!
+  <!-- Footer -->
+  <mat-grid-list cols="2" rowHeight="auto" class="footer">
+    <mat-grid-tile>
+      <h3>Quick Links</h3>
+      <button mat-button color="warn" href="https://facebook.com" target="_blank">Facebook</button>
+      <button mat-button color="warn" href="https://twitter.com" target="_blank">Twitter</button>
+      <button mat-button color="warn" href="https://instagram.com" target="_blank">Instagram</button>
+    </mat-grid-tile>
+    <mat-grid-tile>
+      <h3>Contact Us</h3>
+      <p>Email: support@airlinemanagement.com</p>
+      <p>Phone: +1 123-456-7890</p>
+    </mat-grid-tile>
+  </mat-grid-list>
+</div>
 
+2. Component Styling (home.component.css)
 
-
-
-
-3. Remaining Components
-
-2.2 BookFlightComponent
-
-book-flight.component.ts
-
-import { Component } from '@angular/core';
-import { BookingService } from '../../services/booking.service';
-import { ActivatedRoute } from '@angular/router';
-
-@Component({
-  selector: 'app-book-flight',
-  templateUrl: './book-flight.component.html',
-  styleUrls: ['./book-flight.component.css']
-})
-export class BookFlightComponent {
-  flightId: string | null = null;
-  passengerDetails = { name: '', age: '' };
-
-  constructor(
-    private bookingService: BookingService,
-    private route: ActivatedRoute
-  ) {
-    this.flightId = this.route.snapshot.paramMap.get('id');
-  }
-
-  onBook() {
-    if (this.flightId) {
-      const bookingData = { ...this.passengerDetails, flightId: this.flightId };
-      this.bookingService.bookFlight(bookingData).subscribe({
-        next: () => alert('Flight booked successfully!'),
-        error: () => alert('Failed to book flight'),
-      });
-    }
-  }
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
 }
-
-book-flight.component.html
-
-<mat-card>
-  <h1>Book Flight</h1>
-  <div *ngIf="flightId">
-    <p>Flight ID: {{ flightId }}</p>
-    <mat-form-field>
-      <mat-label>Passenger Name</mat-label>
-      <input matInput [(ngModel)]="passengerDetails.name" name="name" />
-    </mat-form-field>
-    <mat-form-field>
-      <mat-label>Passenger Age</mat-label>
-      <input matInput type="number" [(ngModel)]="passengerDetails.age" name="age" />
-    </mat-form-field>
-    <button mat-raised-button color="primary" (click)="onBook()">Book Flight</button>
-  </div>
-</mat-card>
-
-2.3 ViewBookingsComponent (User)
-
-view-bookings.component.ts
-
-import { Component, OnInit } from '@angular/core';
-import { BookingService } from '../../services/booking.service';
-
-@Component({
-  selector: 'app-view-bookings',
-  templateUrl: './view-bookings.component.html',
-  styleUrls: ['./view-bookings.component.css']
-})
-export class ViewBookingsComponent implements OnInit {
-  userBookings: any[] = [];
-
-  constructor(private bookingService: BookingService) {}
-
-  ngOnInit() {
-    this.bookingService.getUserBookings().subscribe({
-      next: (data) => (this.userBookings = data),
-      error: () => alert('Failed to fetch bookings'),
-    });
-  }
-}
-
-view-bookings.component.html
-
-<mat-card>
-  <h1>Your Bookings</h1>
-  <table mat-table [dataSource]="userBookings" class="mat-elevation-z8">
-    <ng-container matColumnDef="id">
-      <th mat-header-cell *matHeaderCellDef> ID </th>
-      <td mat-cell *matCellDef="let booking"> {{ booking.id }} </td>
-    </ng-container>
-    <ng-container matColumnDef="flightId">
-      <th mat-header-cell *matHeaderCellDef> Flight ID </th>
-      <td mat-cell *matCellDef="let booking"> {{ booking.flightId }} </td>
-    </ng-container>
-    <ng-container matColumnDef="passengerName">
-      <th mat-header-cell *matHeaderCellDef> Passenger Name </th>
-      <td mat-cell *matCellDef="let booking"> {{ booking.passengerName }} </td>
-    </ng-container>
-    <tr mat-header-row *matHeaderRowDef="['id', 'flightId', 'passengerName']"></tr>
-    <tr mat-row *matRowDef="let row; columns: ['id', 'flightId', 'passengerName'];"></tr>
-  </table>
-</mat-card>
-
-4. Shared Components
-
-4.1 NavbarComponent
-
-navbar.component.ts
-
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
-
-@Component({
-  selector: 'app-navbar',
-  templateUrl: './navbar.component.html',
-  styleUrls: ['./navbar.component.css']
-})
-export class NavbarComponent {
-  constructor(private router: Router) {}
-
-  navigateTo(destination: string) {
-    this.router.navigate([destination]);
-  }
-}
-
-navbar.component.html
-
-<mat-toolbar color="primary">
-  <span>Airline Management System</span>
-  <span class="spacer"></span>
-  <button mat-button (click)="navigateTo('/admin')">Admin</button>
-  <button mat-button (click)="navigateTo('/user')">User</button>
-</mat-toolbar>
-
-navbar.component.css
 
 .spacer {
   flex: 1;
 }
 
-4.2 FooterComponent
+/* Slideshow */
+.slideshow-container {
+  overflow: hidden;
+  position: relative;
+}
 
-footer.component.ts
-
-import { Component } from '@angular/core';
-
-@Component({
-  selector: 'app-footer',
-  templateUrl: './footer.component.html',
-  styleUrls: ['./footer.component.css']
-})
-export class FooterComponent {}
-
-footer.component.html
-
-<mat-toolbar color="primary">
-  <span class="footer-text">© 2024 Airline Management System</span>
-</mat-toolbar>
-
-footer.component.css
-
-.footer-text {
-  text-align: center;
+.slideshow-container img {
   width: 100%;
+  height: 300px;
+  object-fit: cover;
+  transition: opacity 1s ease-in-out;
 }
 
-5. Services
-
-5.1 FlightService
-
-flight.service.ts
-
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-
-@Injectable({
-  providedIn: 'root',
-})
-export class FlightService {
-  private apiUrl = 'http://localhost:8080/flights';
-
-  constructor(private http: HttpClient) {}
-
-  addFlight(flight: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/add`, flight);
-  }
-
-  searchFlights(criteria: any): Observable<any[]> {
-    return this.http.post<any[]>(`${this.apiUrl}/search`, criteria);
-  }
+/* Hero Section */
+.hero {
+  text-align: center;
+  margin: 20px auto;
+  padding: 40px 20px;
+  background-color: #f8f9fa;
 }
 
-5.2 BookingService
-
-booking.service.ts
-
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-
-@Injectable({
-  providedIn: 'root',
-})
-export class BookingService {
-  private apiUrl = 'http://localhost:8080/bookings';
-
-  constructor(private http: HttpClient) {}
-
-  bookFlight(booking: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/book`, booking);
-  }
-
-  getAllBookings(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/all`);
-  }
-
-  getUserBookings(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/user`);
-  }
+.hero h1 {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
 }
 
-5.3 AuthService (Optional)
+.hero p {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+}
 
-You can extend this for authentication functionality.
+.hero button {
+  font-size: 1rem;
+}
 
-Let me know if you’d like additional details or help with backend API integrations!
+/* Footer */
+.footer {
+  background-color: #343a40;
+  color: white;
+  padding: 20px;
+}
 
+.footer h3 {
+  color: #ffd700;
+}
 
+.footer button {
+  text-transform: capitalize;
+}
 
-Here’s the code for the Admin Dashboard and User Dashboard components:
-
-1. Admin Dashboard
-
-The Admin Dashboard includes options to manage flights (add, delete, view bookings, etc.).
-
-admin-dashboard.component.ts
+3. Component Script (home.component.ts)
 
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { FlightService } from '../../services/flight.service';
 
 @Component({
-  selector: 'app-admin-dashboard',
-  templateUrl: './admin-dashboard.component.html',
-  styleUrls: ['./admin-dashboard.component.css'],
+  selector: 'app-home',
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.css'],
 })
-export class AdminDashboardComponent implements OnInit {
-  flights: any[] = [];
-  bookings: any[] = [];
+export class HomeComponent implements OnInit {
+  currentSlide: number = 0;
+  totalSlides: number = 3;
 
-  constructor(private flightService: FlightService, private router: Router) {}
+  constructor() {}
 
   ngOnInit(): void {
-    this.loadFlights();
+    this.startSlideshow();
   }
 
-  loadFlights() {
-    this.flightService.getFlights().subscribe({
-      next: (response) => (this.flights = response),
-      error: (err) => console.error('Error loading flights:', err),
-    });
-  }
-
-  deleteFlight(id: number) {
-    if (confirm('Are you sure you want to delete this flight?')) {
-      this.flightService.deleteFlight(id).subscribe({
-        next: () => {
-          alert('Flight deleted successfully.');
-          this.loadFlights();
-        },
-        error: (err) => console.error('Error deleting flight:', err),
-      });
-    }
-  }
-
-  viewAllBookings() {
-    this.flightService.getAllBookings().subscribe({
-      next: (response) => (this.bookings = response),
-      error: (err) => console.error('Error loading bookings:', err),
-    });
+  startSlideshow(): void {
+    setInterval(() => {
+      this.currentSlide = (this.currentSlide + 1) % this.totalSlides;
+    }, 5000); // Change slide every 5 seconds
   }
 }
 
-admin-dashboard.component.html
+4. Angular Material Modules
 
-<div class="container">
-  <h1>Admin Dashboard</h1>
-
-  <h2>Flight Management</h2>
-  <button mat-raised-button color="primary" routerLink="/admin/add-flight">Add Flight</button>
-
-  <table mat-table [dataSource]="flights" class="mat-elevation-z8">
-    <ng-container matColumnDef="id">
-      <th mat-header-cell *matHeaderCellDef>ID</th>
-      <td mat-cell *matCellDef="let flight">{{ flight.id }}</td>
-    </ng-container>
-
-    <ng-container matColumnDef="source">
-      <th mat-header-cell *matHeaderCellDef>Source</th>
-      <td mat-cell *matCellDef="let flight">{{ flight.source }}</td>
-    </ng-container>
-
-    <ng-container matColumnDef="destination">
-      <th mat-header-cell *matHeaderCellDef>Destination</th>
-      <td mat-cell *matCellDef="let flight">{{ flight.destination }}</td>
-    </ng-container>
-
-    <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef>Actions</th>
-      <td mat-cell *matCellDef="let flight">
-        <button mat-button color="warn" (click)="deleteFlight(flight.id)">Delete</button>
-      </td>
-    </ng-container>
-
-    <tr mat-header-row *matHeaderRowDef="['id', 'source', 'destination', 'actions']"></tr>
-    <tr mat-row *matRowDef="let row; columns: ['id', 'source', 'destination', 'actions']"></tr>
-  </table>
-
-  <h2>Bookings</h2>
-  <button mat-raised-button color="accent" (click)="viewAllBookings()">View All Bookings</button>
-
-  <div *ngIf="bookings.length > 0">
-    <table mat-table [dataSource]="bookings" class="mat-elevation-z8">
-      <ng-container matColumnDef="bookingId">
-        <th mat-header-cell *matHeaderCellDef>Booking ID</th>
-        <td mat-cell *matCellDef="let booking">{{ booking.id }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="passengerName">
-        <th mat-header-cell *matHeaderCellDef>Passenger</th>
-        <td mat-cell *matCellDef="let booking">{{ booking.passengerName }}</td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="['bookingId', 'passengerName']"></tr>
-      <tr mat-row *matRowDef="let row; columns: ['bookingId', 'passengerName']"></tr>
-    </table>
-  </div>
-</div>
-
-2. User Dashboard
-
-The User Dashboard lets users search for flights and view their bookings.
-
-user-dashboard.component.ts
-
-import { Component, OnInit } from '@angular/core';
-import { FlightService } from '../../services/flight.service';
-
-@Component({
-  selector: 'app-user-dashboard',
-  templateUrl: './user-dashboard.component.html',
-  styleUrls: ['./user-dashboard.component.css'],
-})
-export class UserDashboardComponent implements OnInit {
-  flights: any[] = [];
-  bookings: any[] = [];
-  searchCriteria = { source: '', destination: '', date: '' };
-
-  constructor(private flightService: FlightService) {}
-
-  ngOnInit(): void {
-    this.loadUserBookings();
-  }
-
-  searchFlights() {
-    this.flightService.searchFlights(this.searchCriteria).subscribe({
-      next: (response) => (this.flights = response),
-      error: (err) => console.error('Error searching flights:', err),
-    });
-  }
-
-  loadUserBookings() {
-    this.flightService.getUserBookings().subscribe({
-      next: (response) => (this.bookings = response),
-      error: (err) => console.error('Error loading bookings:', err),
-    });
-  }
-}
-
-user-dashboard.component.html
-
-<div class="container">
-  <h1>User Dashboard</h1>
-
-  <h2>Search Flights</h2>
-  <form>
-    <mat-form-field>
-      <mat-label>Source</mat-label>
-      <input matInput [(ngModel)]="searchCriteria.source" name="source" />
-    </mat-form-field>
-    <mat-form-field>
-      <mat-label>Destination</mat-label>
-      <input matInput [(ngModel)]="searchCriteria.destination" name="destination" />
-    </mat-form-field>
-    <mat-form-field>
-      <mat-label>Date</mat-label>
-      <input matInput type="date" [(ngModel)]="searchCriteria.date" name="date" />
-    </mat-form-field>
-    <button mat-raised-button color="primary" (click)="searchFlights()">Search</button>
-  </form>
-
-  <h3>Available Flights</h3>
-  <table mat-table [dataSource]="flights" class="mat-elevation-z8">
-    <ng-container matColumnDef="id">
-      <th mat-header-cell *matHeaderCellDef>ID</th>
-      <td mat-cell *matCellDef="let flight">{{ flight.id }}</td>
-    </ng-container>
-
-    <ng-container matColumnDef="source">
-      <th mat-header-cell *matHeaderCellDef>Source</th>
-      <td mat-cell *matCellDef="let flight">{{ flight.source }}</td>
-    </ng-container>
-
-    <ng-container matColumnDef="destination">
-      <th mat-header-cell *matHeaderCellDef>Destination</th>
-      <td mat-cell *matCellDef="let flight">{{ flight.destination }}</td>
-    </ng-container>
-
-    <ng-container matColumnDef="date">
-      <th mat-header-cell *matHeaderCellDef>Date</th>
-      <td mat-cell *matCellDef="let flight">{{ flight.date }}</td>
-    </ng-container>
-
-    <tr mat-header-row *matHeaderRowDef="['id', 'source', 'destination', 'date']"></tr>
-    <tr mat-row *matRowDef="let row; columns: ['id', 'source', 'destination', 'date']"></tr>
-  </table>
-
-  <h2>Your Bookings</h2>
-  <table mat-table [dataSource]="bookings" class="mat-elevation-z8">
-    <ng-container matColumnDef="bookingId">
-      <th mat-header-cell *matHeaderCellDef>Booking ID</th>
-      <td mat-cell *matCellDef="let booking">{{ booking.id }}</td>
-    </ng-container>
-
-    <ng-container matColumnDef="flightDetails">
-      <th mat-header-cell *matHeaderCellDef>Flight</th>
-      <td mat-cell *matCellDef="let booking">{{ booking.flightDetails }}</td>
-    </ng-container>
-
-    <tr mat-header-row *matHeaderRowDef="['bookingId', 'flightDetails']"></tr>
-    <tr mat-row *matRowDef="let row; columns: ['bookingId', 'flightDetails']"></tr>
-  </table>
-</div>
-
-Explanation
-	1.	Admin Dashboard
-	•	Displays all flights with options to delete flights.
-	•	A button to fetch and view all user bookings.
-	2.	User Dashboard
-	•	Includes a form to search flights based on source, destination, and date.
-	•	Displays available flights after search.
-	•	Lists the user’s current bookings.
-	3.	Reusable Services
-Ensure FlightService includes methods like getFlights(), deleteFlight(id), getAllBookings(), searchFlights(criteria), and getUserBookings().
-
-Let me know if you need help implementing the FlightService!
-
-
-
-
-Here’s the complete implementation of FlightService to handle all the operations for your airline management system. This service will interact with the backend API to fetch, add, update, and delete flights, as well as manage bookings.
-
-flight-service.service.ts
-
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
-
-@Injectable({
-  providedIn: 'root',
-})
-export class FlightService {
-  private baseUrl = 'http://localhost:8080/api'; // Replace with your backend URL
-
-  constructor(private http: HttpClient) {}
-
-  // Get all flights
-  getFlights(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/flights`);
-  }
-
-  // Add a new flight
-  addFlight(flight: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/flights`, flight);
-  }
-
-  // Delete a flight by ID
-  deleteFlight(flightId: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/flights/${flightId}`);
-  }
-
-  // Get all bookings (Admin functionality)
-  getAllBookings(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/bookings`);
-  }
-
-  // Get bookings for a specific user (User functionality)
-  getUserBookings(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/user/bookings`);
-  }
-
-  // Search flights by criteria
-  searchFlights(criteria: any): Observable<any[]> {
-    return this.http.post<any[]>(`${this.baseUrl}/flights/search`, criteria);
-  }
-
-  // Book a flight
-  bookFlight(bookingDetails: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/bookings`, bookingDetails);
-  }
-
-  // Cancel a booking
-  cancelBooking(bookingId: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/bookings/${bookingId}`);
-  }
-}
-
-Explanation
-	1.	Base URL
-	•	Replace http://localhost:8080/api with the URL of your backend server.
-	•	Ensure that your backend APIs are set up correctly and correspond to these endpoints.
-	2.	API Methods
-	•	getFlights(): Fetches all flights from the backend.
-	•	addFlight(flight): Adds a new flight. The flight parameter is an object containing flight details (e.g., source, destination, date).
-	•	deleteFlight(flightId): Deletes a flight by its ID.
-	•	getAllBookings(): Fetches all user bookings (for Admin).
-	•	getUserBookings(): Fetches bookings for the logged-in user (for User).
-	•	searchFlights(criteria): Searches for flights based on search criteria (source, destination, and date).
-	•	bookFlight(bookingDetails): Books a flight for a user. The bookingDetails parameter contains user and flight details.
-	•	cancelBooking(bookingId): Cancels a booking by its ID.
-	3.	Backend API Endpoints
-	•	Make sure your backend REST APIs match the following endpoints:
-	•	GET /flights: Fetch all flights.
-	•	POST /flights: Add a new flight.
-	•	DELETE /flights/{id}: Delete a flight by ID.
-	•	GET /bookings: Fetch all bookings (Admin).
-	•	GET /user/bookings: Fetch user bookings.
-	•	POST /flights/search: Search flights by criteria.
-	•	POST /bookings: Create a new booking.
-	•	DELETE /bookings/{id}: Cancel a booking by ID.
-	4.	Headers
-	•	If authentication is needed, include an Authorization header in each request:
-
-const headers = new HttpHeaders().set(
-  'Authorization',
-  `Bearer ${yourAuthToken}`
-);
-return this.http.get<any[]>(`${this.baseUrl}/flights`, { headers });
-
-Let me know if you need help integrating this service into your components!
-
-
-
-
-Here’s the complete implementation for a BookingService to manage user bookings, including features such as fetching user bookings, creating new bookings, and canceling existing ones.
-
-booking-service.service.ts
-
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-
-@Injectable({
-  providedIn: 'root',
-})
-export class BookingService {
-  private baseUrl = 'http://localhost:8080/api'; // Replace with your backend URL
-
-  constructor(private http: HttpClient) {}
-
-  // Get all bookings for a specific user
-  getUserBookings(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/user/bookings`);
-  }
-
-  // Get booking details by booking ID
-  getBookingDetails(bookingId: number): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/bookings/${bookingId}`);
-  }
-
-  // Create a new booking
-  createBooking(bookingDetails: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/bookings`, bookingDetails);
-  }
-
-  // Cancel an existing booking
-  cancelBooking(bookingId: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/bookings/${bookingId}`);
-  }
-}
-
-Explanation
-	1.	Base URL
-	•	Replace http://localhost:8080/api with your backend server’s base URL.
-	•	Ensure that your backend APIs align with the endpoints provided below.
-	2.	API Methods
-	•	getUserBookings()
-Fetches all bookings for the currently logged-in user. This could be filtered by user information on the backend.
-	•	getBookingDetails(bookingId)
-Fetches detailed information for a specific booking using the bookingId parameter.
-	•	createBooking(bookingDetails)
-Creates a new booking. The bookingDetails parameter should contain the following:
-	•	Passenger name, flight ID, and other details required by the backend.
-	•	cancelBooking(bookingId)
-Cancels an existing booking by its bookingId.
-	3.	Backend API Endpoints
-	•	Ensure your backend APIs have the following routes:
-	•	GET /user/bookings: Get bookings for the logged-in user.
-	•	GET /bookings/{id}: Get detailed information about a specific booking.
-	•	POST /bookings: Create a new booking.
-	•	DELETE /bookings/{id}: Cancel a booking by its ID.
-	4.	Example BookingDetails Object for createBooking
-	•	When creating a booking, the bookingDetails object could look like this:
-
-const bookingDetails = {
-  flightId: 123, // ID of the flight to be booked
-  passengerName: 'John Doe',
-  passengerAge: 29,
-  userId: 456, // ID of the logged-in user (if required)
-};
-
-
-	5.	Adding Authorization (Optional)
-	•	If your API is secured with JWT or any authentication mechanism, add an Authorization header like this:
-
-import { HttpHeaders } from '@angular/common/http';
-
-const headers = new HttpHeaders().set(
-  'Authorization',
-  `Bearer ${yourAuthToken}`
-);
-return this.http.post(`${this.baseUrl}/bookings`, bookingDetails, {
-  headers,
-});
-
-Integration with Components
-
-Use this service in your User Dashboard or other relevant components by injecting it into the constructor and calling the appropriate methods.
-
-Example: Fetch User Bookings in User Dashboard
-
-import { Component, OnInit } from '@angular/core';
-import { BookingService } from '../../services/booking-service.service';
-
-@Component({
-  selector: 'app-user-dashboard',
-  templateUrl: './user-dashboard.component.html',
-  styleUrls: ['./user-dashboard.component.css'],
-})
-export class UserDashboardComponent implements OnInit {
-  bookings: any[] = [];
-
-  constructor(private bookingService: BookingService) {}
-
-  ngOnInit(): void {
-    this.loadUserBookings();
-  }
-
-  loadUserBookings() {
-    this.bookingService.getUserBookings().subscribe({
-      next: (response) => (this.bookings = response),
-      error: (err) => console.error('Error loading bookings:', err),
-    });
-  }
-}
-
-This BookingService will help streamline booking-related operations. Let me know if you need further assistance!
-
-
-
-
-Here’s how you can implement authentication in your Angular-based Airline Management System. The system will include:
-	1.	Login Page for both Admin and User.
-	2.	Auth Guards to restrict access based on roles.
-	3.	JWT-based token management for secure communication with the backend.
-
-1. Backend Preparation
-
-Ensure your backend has the following endpoints for authentication:
-	•	/auth/login for generating a JWT token.
-	•	/auth/validate for validating a token.
-
-These endpoints should return the JWT token, user role (admin or user), and user details upon successful login.
-
-2. Authentication Workflow
-	•	Login Component: Handles user input and communicates with the backend to authenticate users.
-	•	AuthService: Manages token storage and validation.
-	•	AuthGuard: Protects routes based on roles.
-
-3. Code Implementation
-
-3.1 AuthService
-
-auth.service.ts
-
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { tap } from 'rxjs/operators';
-
-@Injectable({
-  providedIn: 'root',
-})
-export class AuthService {
-  private apiUrl = 'http://localhost:8080/auth';
-  private isLoggedInSubject = new BehaviorSubject<boolean>(this.hasToken());
-
-  constructor(private http: HttpClient, private router: Router) {}
-
-  login(credentials: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/login`, credentials).pipe(
-      tap((response: any) => {
-        localStorage.setItem('token', response.token);
-        localStorage.setItem('role', response.role);
-        this.isLoggedInSubject.next(true);
-      })
-    );
-  }
-
-  logout(): void {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    this.isLoggedInSubject.next(false);
-    this.router.navigate(['/login']);
-  }
-
-  isLoggedIn(): Observable<boolean> {
-    return this.isLoggedInSubject.asObservable();
-  }
-
-  getToken(): string | null {
-    return localStorage.getItem('token');
-  }
-
-  getRole(): string | null {
-    return localStorage.getItem('role');
-  }
-
-  hasToken(): boolean {
-    return !!localStorage.getItem('token');
-  }
-}
-
-3.2 Auth Guard
-
-auth.guard.ts
-
-import { Injectable } from '@angular/core';
-import {
-  CanActivate,
-  ActivatedRouteSnapshot,
-  RouterStateSnapshot,
-  Router,
-} from '@angular/router';
-import { AuthService } from '../services/auth.service';
-
-@Injectable({
-  providedIn: 'root',
-})
-export class AuthGuard implements CanActivate {
-  constructor(private authService: AuthService, private router: Router) {}
-
-  canActivate(
-    route: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot
-  ): boolean {
-    const token = this.authService.getToken();
-    const role = this.authService.getRole();
-    const requiredRole = route.data['role'];
-
-    if (!token || (requiredRole && role !== requiredRole)) {
-      this.router.navigate(['/login']);
-      return false;
-    }
-
-    return true;
-  }
-}
-
-3.3 Login Component
-
-login.component.ts
-
-import { Component } from '@angular/core';
-import { AuthService } from '../../services/auth.service';
-import { Router } from '@angular/router';
-
-@Component({
-  selector: 'app-login',
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css'],
-})
-export class LoginComponent {
-  credentials = { username: '', password: '' };
-
-  constructor(private authService: AuthService, private router: Router) {}
-
-  onSubmit() {
-    this.authService.login(this.credentials).subscribe({
-      next: (response) => {
-        const role = response.role;
-        if (role === 'admin') {
-          this.router.navigate(['/admin/dashboard']);
-        } else if (role === 'user') {
-          this.router.navigate(['/user/dashboard']);
-        }
-      },
-      error: () => alert('Invalid credentials!'),
-    });
-  }
-}
-
-login.component.html
-
-<mat-card>
-  <h1>Login</h1>
-  <form>
-    <mat-form-field>
-      <mat-label>Username</mat-label>
-      <input matInput [(ngModel)]="credentials.username" name="username" />
-    </mat-form-field>
-    <mat-form-field>
-      <mat-label>Password</mat-label>
-      <input matInput type="password" [(ngModel)]="credentials.password" name="password" />
-    </mat-form-field>
-    <button mat-raised-button color="primary" (click)="onSubmit()">Login</button>
-  </form>
-</mat-card>
-
-3.4 Protecting Routes
-
-Update the app-routing.module.ts to secure routes with the AuthGuard.
-
-app-routing.module.ts
+Make sure to import the necessary Angular Material modules into your application. Add them to your AppModule:
 
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
-import { LoginComponent } from './components/login/login.component';
-import { AddFlightComponent } from './components/admin/add-flight/add-flight.component';
-import { SearchFlightComponent } from './components/user/search-flight/search-flight.component';
-import { AuthGuard } from './guards/auth.guard';
-
-const routes: Routes = [
-  { path: '', redirectTo: '/login', pathMatch: 'full' },
-  { path: 'login', component: LoginComponent },
-  {
-    path: 'admin/dashboard',
-    component: AddFlightComponent,
-    canActivate: [AuthGuard],
-    data: { role: 'admin' },
-  },
-  {
-    path: 'user/dashboard',
-    component: SearchFlightComponent,
-    canActivate: [AuthGuard],
-    data: { role: 'user' },
-  },
-];
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatButtonModule } from '@angular/material/button';
+import { MatGridListModule } from '@angular/material/grid-list';
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule],
+  declarations: [],
+  imports: [
+    MatToolbarModule,
+    MatButtonModule,
+    MatGridListModule,
+  ],
+  exports: [
+    MatToolbarModule,
+    MatButtonModule,
+    MatGridListModule,
+  ],
 })
-export class AppRoutingModule {}
+export class MaterialModule {}
 
-3.5 Navbar Updates for Logout
+Include the MaterialModule in your AppModule:
 
-Update the Navbar to display different options for Admin/User and include a Logout option.
+import { MaterialModule } from './material.module';
 
-navbar.component.ts
-
-import { Component } from '@angular/core';
-import { AuthService } from '../../services/auth.service';
-
-@Component({
-  selector: 'app-navbar',
-  templateUrl: './navbar.component.html',
-  styleUrls: ['./navbar.component.css'],
+@NgModule({
+  imports: [
+    MaterialModule,
+    // Other imports...
+  ],
 })
-export class NavbarComponent {
-  constructor(private authService: AuthService) {}
+export class AppModule {}
 
-  logout() {
-    this.authService.logout();
-  }
+Explanation
+	1.	Navbar:
+	•	mat-toolbar provides the navbar with a primary color theme.
+	•	Buttons within the navbar are created using mat-button and styled to align horizontally.
+	2.	Slideshow:
+	•	Uses mat-grid-list to display a slideshow.
+	•	The currentSlide is updated every 5 seconds using setInterval, which changes the image dynamically.
+	3.	Hero Section:
+	•	Contains a header, description, and a mat-raised-button for the “Book Tickets” button.
+	4.	Footer:
+	•	Built with a two-column layout using mat-grid-list, providing sections for Quick Links and Contact Info.
+	5.	Slideshow Logic:
+	•	The slideshow dynamically changes the displayed image by incrementing the currentSlide index.
 
-  isAdmin(): boolean {
-    return this.authService.getRole() === 'admin';
-  }
+Running the Application
+	1.	Ensure the Angular Material library is installed:
 
-  isUser(): boolean {
-    return this.authService.getRole() === 'user';
-  }
-}
+ng add @angular/material
 
-navbar.component.html
 
-<mat-toolbar color="primary">
-  <span>Airline Management System</span>
-  <span class="spacer"></span>
-  <button mat-button *ngIf="isAdmin()" routerLink="/admin/dashboard">Admin Dashboard</button>
-  <button mat-button *ngIf="isUser()" routerLink="/user/dashboard">User Dashboard</button>
-  <button mat-button (click)="logout()">Logout</button>
-</mat-toolbar>
+	2.	Add images to the assets/images folder:
+	•	slide1.jpg
+	•	slide2.jpg
+	•	slide3.jpg
+	3.	Serve the application:
 
-4. Token Interceptor for API Requests
+ng serve
 
-Add an HTTP interceptor to include the token in every request.
 
-token.interceptor.ts
 
-import { Injectable } from '@angular/core';
-import { HttpInterceptor, HttpRequest, HttpHandler } from '@angular/common/http';
-import { AuthService } from '../services/auth.service';
-
-@Injectable()
-export class TokenInterceptor implements HttpInterceptor {
-  constructor(private authService: AuthService) {}
-
-  intercept(req: HttpRequest<any>, next: HttpHandler) {
-    const token = this.authService.getToken();
-    if (token) {
-      req = req.clone({
-        setHeaders: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-    }
-    return next.handle(req);
-  }
-}
-
-Add it to the providers in app.module.ts:
-
-import { HTTP_INTERCEPTORS } from '@angular/common/http';
-import { TokenInterceptor } from './interceptors/token.interceptor';
-
-providers: [
-  { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true },
-],
-
-This implementation provides a secure and role-based authentication system integrated with your backend. Let me know if you’d like to refine or expand it further!
+You’ll have a responsive home page with Angular Material components, including a navbar, slideshow, hero button, and footer!
