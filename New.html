@@ -1,189 +1,228 @@
-Here’s an implementation of a slideshow component without using mat-grid-list. This version will use Angular Material for styling but rely on CSS for the slideshow layout:
+Here’s an Angular implementation for the described flight booking component using Material modules and fetching the flightId and userId dynamically.
 
-Slideshow Component
+Prerequisites:
+	1.	Make sure you have Angular Material installed:
 
-1. HTML (home.component.html):
+ng add @angular/material
 
-<div class="navbar">
-  <!-- Navbar Content -->
+
+	2.	Backend APIs:
+	•	Fetch flights: GET /api/flights
+	•	Create booking: POST /api/bookings
+	•	Fetch booking by ID: GET /api/bookings/{bookingId}
+	•	Get logged-in user details: GET /api/users/current
+
+Flight Booking Component
+
+HTML: flight-booking.component.html
+
+<div class="booking-container" fxLayout="column" fxLayoutAlign="center center">
+  <h2>Flight Booking</h2>
+  <form [formGroup]="bookingForm" (ngSubmit)="submitBooking()">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Passenger Name</mat-label>
+      <input matInput formControlName="passengerName" required />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Address</mat-label>
+      <textarea matInput formControlName="address" rows="3" required></textarea>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Email</mat-label>
+      <input matInput type="email" formControlName="email" required />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Phone Number</mat-label>
+      <input matInput type="tel" formControlName="phoneNumber" required />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Number of Seats</mat-label>
+      <input matInput type="number" formControlName="numSeats" required />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Seat Numbers (comma-separated)</mat-label>
+      <input matInput formControlName="seatNumbers" required />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width" disabled>
+      <mat-label>Flight Number</mat-label>
+      <input matInput [value]="selectedFlight?.flightNumber" disabled />
+    </mat-form-field>
+
+    <button mat-raised-button color="primary" type="submit" [disabled]="bookingForm.invalid">
+      Book Now
+    </button>
+  </form>
 </div>
 
-<div class="slideshow-container">
-  <div *ngFor="let slide of slides; let i = index" class="mySlides fade" [class.active]="i === currentSlide">
-    <img [src]="slide.image" class="slideshow-image" alt="Slide Image {{ i + 1 }}" />
-    <div class="caption">{{ slide.caption }}</div>
-  </div>
-
-  <button class="prev" (click)="changeSlide(-1)">&#10094;</button>
-  <button class="next" (click)="changeSlide(1)">&#10095;</button>
+<div *ngIf="successMessage" class="success-container" fxLayout="column" fxLayoutAlign="center center">
+  <mat-icon color="primary" fontSize="48px">check_circle</mat-icon>
+  <h3>{{ successMessage }}</h3>
+  <button mat-raised-button color="accent" (click)="viewMyBooking()">View My Booking</button>
 </div>
 
-<div class="hero-button-container">
-  <button mat-raised-button color="primary" (click)="bookTickets()">Book Tickets</button>
-</div>
-
-<footer class="footer">
-  <h3>Quick Links</h3>
-  <a href="https://facebook.com" target="_blank">Facebook</a>
-  <a href="https://twitter.com" target="_blank">Twitter</a>
-  <a href="https://instagram.com" target="_blank">Instagram</a>
-</footer>
-
-2. CSS (home.component.css):
-
-/* Navbar Styling */
-.navbar {
-  background-color: #1976d2;
-  color: white;
-  padding: 1rem;
-  text-align: center;
-  font-size: 1.5rem;
-}
-
-/* Slideshow Container */
-.slideshow-container {
-  position: relative;
-  max-width: 100%;
-  margin: auto;
-  overflow: hidden;
-}
-
-.mySlides {
-  display: none;
-  position: absolute;
-  width: 100%;
-}
-
-.mySlides.active {
-  display: block;
-  animation: fadeEffect 1.5s;
-}
-
-.slideshow-image {
-  width: 100%;
-  height: auto;
-}
-
-.caption {
-  color: #fff;
-  font-size: 1.2rem;
-  background-color: rgba(0, 0, 0, 0.5);
-  text-align: center;
-  padding: 0.5rem;
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-}
-
-/* Buttons for Navigation */
-.prev, .next {
-  cursor: pointer;
-  position: absolute;
-  top: 50%;
-  width: auto;
-  padding: 0.5rem;
-  color: white;
-  background-color: rgba(0, 0, 0, 0.5);
-  border: none;
-  font-size: 2rem;
-  transform: translateY(-50%);
-}
-
-.prev {
-  left: 10px;
-}
-
-.next {
-  right: 10px;
-}
-
-.hero-button-container {
-  text-align: center;
-  margin: 2rem 0;
-}
-
-.hero-button-container button {
-  padding: 0.75rem 2rem;
-  font-size: 1.2rem;
-}
-
-/* Footer Styling */
-.footer {
-  background-color: #f8f8f8;
-  text-align: center;
-  padding: 1rem;
-}
-
-.footer h3 {
-  margin: 0.5rem 0;
-}
-
-.footer a {
-  color: #1976d2;
-  margin: 0 1rem;
-  text-decoration: none;
-}
-
-.footer a:hover {
-  text-decoration: underline;
-}
-
-/* Animation */
-@keyframes fadeEffect {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-3. TypeScript (home.component.ts):
+TS: flight-booking.component.ts
 
 import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { BookingService } from '../services/booking.service';
+import { AuthService } from '../services/auth.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
-  selector: 'app-home',
-  templateUrl: './home.component.html',
-  styleUrls: ['./home.component.css']
+  selector: 'app-flight-booking',
+  templateUrl: './flight-booking.component.html',
+  styleUrls: ['./flight-booking.component.css'],
 })
-export class HomeComponent implements OnInit {
-  slides = [
-    { image: 'assets/slide1.jpg', caption: 'Welcome to Airline Management' },
-    { image: 'assets/slide2.jpg', caption: 'Book Your Flights Today' },
-    { image: 'assets/slide3.jpg', caption: 'Travel With Comfort' }
-  ];
-  currentSlide = 0;
+export class FlightBookingComponent implements OnInit {
+  bookingForm: FormGroup;
+  successMessage: string | null = null;
+  selectedFlight: any;
+  currentUserId: string;
+
+  constructor(
+    private fb: FormBuilder,
+    private bookingService: BookingService,
+    private authService: AuthService,
+    private route: ActivatedRoute,
+    private snackBar: MatSnackBar
+  ) {}
 
   ngOnInit(): void {
-    this.startSlideshow();
+    this.bookingForm = this.fb.group({
+      passengerName: ['', Validators.required],
+      address: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      phoneNumber: ['', Validators.required],
+      numSeats: ['', [Validators.required, Validators.min(1)]],
+      seatNumbers: ['', Validators.required],
+    });
+
+    // Get selected flight
+    const flightId = this.route.snapshot.paramMap.get('flightId');
+    this.bookingService.getFlightDetails(flightId).subscribe((flight) => {
+      this.selectedFlight = flight;
+    });
+
+    // Fetch logged-in user details
+    this.authService.getCurrentUser().subscribe((user) => {
+      this.currentUserId = user.id;
+    });
   }
 
-  startSlideshow() {
-    setInterval(() => {
-      this.changeSlide(1);
-    }, 5000); // Change slide every 5 seconds
+  submitBooking(): void {
+    const bookingDetails = {
+      ...this.bookingForm.value,
+      flightId: this.selectedFlight.id,
+      userId: this.currentUserId,
+    };
+
+    this.bookingService.createBooking(bookingDetails).subscribe({
+      next: (response) => {
+        this.successMessage = 'Booking successful!';
+        this.snackBar.open('Booking created successfully!', 'Close', {
+          duration: 3000,
+        });
+      },
+      error: (error) => {
+        this.snackBar.open('Failed to create booking. Please try again.', 'Close', {
+          duration: 3000,
+        });
+      },
+    });
   }
 
-  changeSlide(direction: number) {
-    this.currentSlide = (this.currentSlide + direction + this.slides.length) % this.slides.length;
-  }
-
-  bookTickets() {
-    // Navigate to booking page or open booking modal
-    console.log('Navigate to booking page');
+  viewMyBooking(): void {
+    const bookingId = prompt('Enter your Booking ID:');
+    this.bookingService.getBookingById(bookingId).subscribe({
+      next: (booking) => {
+        console.log(booking); // You can route to a detailed booking page here
+      },
+      error: () => {
+        this.snackBar.open('Booking not found. Please check the Booking ID.', 'Close', {
+          duration: 3000,
+        });
+      },
+    });
   }
 }
 
-4. Add Images
+Service: booking.service.ts
 
-Place your slideshow images in the src/assets folder. Update the slides array in home.component.ts with your image paths and captions.
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
-How It Works
-	1.	Navbar: Always displayed at the top with a consistent look.
-	2.	Slideshow: Cycles through images with captions. Users can navigate using the “previous” and “next” buttons.
-	3.	Hero Button: Prominently placed button to guide users to book tickets.
-	4.	Footer: Displays quick links to social media or other useful pages.
-	5.	Responsive Design: The layout is mobile-friendly and adapts to various screen sizes.
+@Injectable({
+  providedIn: 'root',
+})
+export class BookingService {
+  private apiUrl = 'http://localhost:8080/api'; // Update with actual backend URL
 
-Let me know if you need any enhancements!
+  constructor(private http: HttpClient) {}
+
+  getFlightDetails(flightId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/flights/${flightId}`);
+  }
+
+  createBooking(booking: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/bookings`, booking);
+  }
+
+  getBookingById(bookingId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/bookings/${bookingId}`);
+  }
+}
+
+Service: auth.service.ts
+
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class AuthService {
+  private apiUrl = 'http://localhost:8080/api'; // Update with actual backend URL
+
+  constructor(private http: HttpClient) {}
+
+  getCurrentUser(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/users/current`);
+  }
+}
+
+Styling: flight-booking.component.css
+
+.booking-container {
+  width: 400px;
+  margin: auto;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.success-container {
+  text-align: center;
+  margin-top: 20px;
+}
+
+Routing
+
+Add a route for the booking component in app-routing.module.ts:
+
+{
+  path: 'book/:flightId',
+  component: FlightBookingComponent,
+}
+
+This setup dynamically fetches flight and user data, validates inputs, and shows success feedback. You can expand it further to include detailed booking views or navigations.
