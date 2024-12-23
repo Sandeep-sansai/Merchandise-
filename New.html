@@ -1,159 +1,132 @@
-Here’s an Angular implementation for the described flight booking component using Material modules and fetching the flightId and userId dynamically.
+Here’s a polished Angular page where the booking cancellation functionality is implemented in a neat card layout with proper styling. When the user enters the booking ID and clicks “Cancel Booking,” the system will delete the booking in the database and show a pop-up message indicating success.
 
-Prerequisites:
-	1.	Make sure you have Angular Material installed:
+Angular Component: BookingManager
 
-ng add @angular/material
+1. HTML Template
 
-
-	2.	Backend APIs:
-	•	Fetch flights: GET /api/flights
-	•	Create booking: POST /api/bookings
-	•	Fetch booking by ID: GET /api/bookings/{bookingId}
-	•	Get logged-in user details: GET /api/users/current
-
-Flight Booking Component
-
-HTML: flight-booking.component.html
-
-<div class="booking-container" fxLayout="column" fxLayoutAlign="center center">
-  <h2>Flight Booking</h2>
-  <form [formGroup]="bookingForm" (ngSubmit)="submitBooking()">
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Passenger Name</mat-label>
-      <input matInput formControlName="passengerName" required />
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Address</mat-label>
-      <textarea matInput formControlName="address" rows="3" required></textarea>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Email</mat-label>
-      <input matInput type="email" formControlName="email" required />
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Phone Number</mat-label>
-      <input matInput type="tel" formControlName="phoneNumber" required />
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Number of Seats</mat-label>
-      <input matInput type="number" formControlName="numSeats" required />
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Seat Numbers (comma-separated)</mat-label>
-      <input matInput formControlName="seatNumbers" required />
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width" disabled>
-      <mat-label>Flight Number</mat-label>
-      <input matInput [value]="selectedFlight?.flightNumber" disabled />
-    </mat-form-field>
-
-    <button mat-raised-button color="primary" type="submit" [disabled]="bookingForm.invalid">
-      Book Now
-    </button>
-  </form>
+<div class="container">
+  <div class="card">
+    <div class="card-header">
+      <h2>Cancel Booking</h2>
+    </div>
+    <div class="card-body">
+      <form (submit)="cancelBooking()">
+        <div class="form-group">
+          <label for="bookingId">Enter Booking ID</label>
+          <input
+            type="text"
+            id="bookingId"
+            class="form-control"
+            [(ngModel)]="bookingId"
+            name="bookingId"
+            placeholder="Booking ID"
+            required
+          />
+        </div>
+        <button type="submit" class="btn btn-danger mt-3">Cancel Booking</button>
+      </form>
+    </div>
+  </div>
 </div>
 
-<div *ngIf="successMessage" class="success-container" fxLayout="column" fxLayoutAlign="center center">
-  <mat-icon color="primary" fontSize="48px">check_circle</mat-icon>
-  <h3>{{ successMessage }}</h3>
-  <button mat-raised-button color="accent" (click)="viewMyBooking()">View My Booking</button>
-</div>
+2. CSS Styling
 
-TS: flight-booking.component.ts
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f7f9fc;
+}
 
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatSnackBar } from '@angular/material/snack-bar';
+.card {
+  width: 400px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+}
+
+.card-header {
+  text-align: center;
+  padding: 20px 0;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+  border-radius: 10px 10px 0 0;
+}
+
+.card-header h2 {
+  margin: 0;
+  color: #333;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.btn {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-danger {
+  background-color: #d9534f;
+}
+
+.btn-danger:hover {
+  background-color: #c9302c;
+}
+
+3. Component Logic
+
+import { Component } from '@angular/core';
 import { BookingService } from '../services/booking.service';
-import { AuthService } from '../services/auth.service';
-import { ActivatedRoute } from '@angular/router';
 
 @Component({
-  selector: 'app-flight-booking',
-  templateUrl: './flight-booking.component.html',
-  styleUrls: ['./flight-booking.component.css'],
+  selector: 'app-booking-manager',
+  templateUrl: './booking-manager.component.html',
+  styleUrls: ['./booking-manager.component.css']
 })
-export class FlightBookingComponent implements OnInit {
-  bookingForm: FormGroup;
-  successMessage: string | null = null;
-  selectedFlight: any;
-  currentUserId: string;
+export class BookingManagerComponent {
+  bookingId: string = '';
 
-  constructor(
-    private fb: FormBuilder,
-    private bookingService: BookingService,
-    private authService: AuthService,
-    private route: ActivatedRoute,
-    private snackBar: MatSnackBar
-  ) {}
+  constructor(private bookingService: BookingService) {}
 
-  ngOnInit(): void {
-    this.bookingForm = this.fb.group({
-      passengerName: ['', Validators.required],
-      address: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
-      phoneNumber: ['', Validators.required],
-      numSeats: ['', [Validators.required, Validators.min(1)]],
-      seatNumbers: ['', Validators.required],
-    });
+  cancelBooking() {
+    if (!this.bookingId.trim()) {
+      alert('Please enter a valid Booking ID.');
+      return;
+    }
 
-    // Get selected flight
-    const flightId = this.route.snapshot.paramMap.get('flightId');
-    this.bookingService.getFlightDetails(flightId).subscribe((flight) => {
-      this.selectedFlight = flight;
-    });
-
-    // Fetch logged-in user details
-    this.authService.getCurrentUser().subscribe((user) => {
-      this.currentUserId = user.id;
-    });
-  }
-
-  submitBooking(): void {
-    const bookingDetails = {
-      ...this.bookingForm.value,
-      flightId: this.selectedFlight.id,
-      userId: this.currentUserId,
-    };
-
-    this.bookingService.createBooking(bookingDetails).subscribe({
+    this.bookingService.cancelBooking(this.bookingId).subscribe({
       next: (response) => {
-        this.successMessage = 'Booking successful!';
-        this.snackBar.open('Booking created successfully!', 'Close', {
-          duration: 3000,
-        });
+        alert('Booking cancelled successfully.');
+        this.bookingId = ''; // Clear the input field
       },
-      error: (error) => {
-        this.snackBar.open('Failed to create booking. Please try again.', 'Close', {
-          duration: 3000,
-        });
-      },
-    });
-  }
-
-  viewMyBooking(): void {
-    const bookingId = prompt('Enter your Booking ID:');
-    this.bookingService.getBookingById(bookingId).subscribe({
-      next: (booking) => {
-        console.log(booking); // You can route to a detailed booking page here
-      },
-      error: () => {
-        this.snackBar.open('Booking not found. Please check the Booking ID.', 'Close', {
-          duration: 3000,
-        });
-      },
+      error: (err) => {
+        alert(err.error || 'Failed to cancel booking. Please try again.');
+      }
     });
   }
 }
 
-Service: booking.service.ts
+4. Service Logic
 
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -163,66 +136,44 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class BookingService {
-  private apiUrl = 'http://localhost:8080/api'; // Update with actual backend URL
+  private apiUrl = 'http://localhost:8080/api/bookings';
 
   constructor(private http: HttpClient) {}
 
-  getFlightDetails(flightId: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/flights/${flightId}`);
-  }
-
-  createBooking(booking: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/bookings`, booking);
-  }
-
-  getBookingById(bookingId: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/bookings/${bookingId}`);
+  cancelBooking(bookingId: string): Observable<string> {
+    return this.http.delete(`${this.apiUrl}/${bookingId}`, { responseType: 'text' });
   }
 }
 
-Service: auth.service.ts
+Explanation
+	1.	HTML Template:
+	•	A card layout with a form containing an input field for the Booking ID and a “Cancel Booking” button.
+	•	The form uses ngModel for two-way data binding and a submit event.
+	2.	CSS Styling:
+	•	Ensures the page looks professional with centered content, rounded card corners, and shadow effects.
+	•	The button and input field are styled for clarity.
+	3.	Component Logic:
+	•	The cancelBooking() function validates the input and makes an API call via the BookingService.
+	•	If the cancellation is successful, a pop-up alert is shown, and the input field is cleared.
+	•	On failure, an error alert is displayed.
+	4.	Service Logic:
+	•	The BookingService communicates with the backend to delete the booking by ID.
 
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+Backend Integration
 
-@Injectable({
-  providedIn: 'root',
-})
-export class AuthService {
-  private apiUrl = 'http://localhost:8080/api'; // Update with actual backend URL
+Ensure your backend (BookingController) has the DELETE endpoint as shown earlier:
 
-  constructor(private http: HttpClient) {}
-
-  getCurrentUser(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/users/current`);
-  }
+@DeleteMapping("/{bookingId}")
+public ResponseEntity<String> cancelBooking(@PathVariable Long bookingId) {
+    bookingService.cancelBooking(bookingId);
+    return ResponseEntity.ok("Booking cancelled successfully.");
 }
 
-Styling: flight-booking.component.css
+Expected Output
+	1.	The page displays a card layout asking for a Booking ID.
+	2.	When the user enters a valid ID and clicks “Cancel Booking”:
+	•	A pop-up shows “Booking cancelled successfully.”
+	•	The booking is deleted from the database.
+	3.	If the ID is invalid, the pop-up shows an error message.
 
-.booking-container {
-  width: 400px;
-  margin: auto;
-}
-
-.full-width {
-  width: 100%;
-  margin-bottom: 15px;
-}
-
-.success-container {
-  text-align: center;
-  margin-top: 20px;
-}
-
-Routing
-
-Add a route for the booking component in app-routing.module.ts:
-
-{
-  path: 'book/:flightId',
-  component: FlightBookingComponent,
-}
-
-This setup dynamically fetches flight and user data, validates inputs, and shows success feedback. You can expand it further to include detailed booking views or navigations.
+Would you like me to assist with further customizations or API testing?
